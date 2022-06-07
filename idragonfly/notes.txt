@@ -1,0 +1,3 @@
+=> Conversion Notes
+
+* ln 131: globals check that the variables are the same.
