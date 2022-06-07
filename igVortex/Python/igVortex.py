@@ -1,15 +1,19 @@
 import logging
+import math
 import jax.numpy as jnp
-from sklearn import svm
+jnp.arange(5)
 
-import globals as g
+import src.globals as g
+
+from src.iginData import iginData
+from src.meshes.igmeshR import igmeshR
 
 # -------------------------------------------------
 # DEBUGGING PARAMETERS
 # -------------------------------------------------
 
 # Airfoil Mesh Plot: mplot mesh plot 0 (no) 1 (yes) 2 (Compare equal arc and equal abscissa mesh points)
-g.mplot = 0
+g.mplot = 1
 # Airfoil normal velocity plot: vplot 0 (no) 1 (yes)
 g.vplot = 0
 # Wake Vortex plot: 0 (no) 1 (yes)
@@ -21,7 +25,10 @@ g.zavoid = 0
 
 # -------------------------------------------------
 
-logging.basicConfig(filename=g.log_file, filemode = "w", level = logging.INFO)
+logging.basicConfig(filename=g.log_file, filemode = "w", force = True, level = logging.INFO, format="%(message)s")
+logging.info("-------------------------------------------")
+logging.info("igVortex")
+logging.info("-------------------------------------------")
 
 # -------------------------------------------------
 # INPUT VARIABLES
@@ -38,11 +45,11 @@ n = 101
 # Read airfoil shape data to determine the chord length
 # Here use a formula to specify the airfoil shape
 atmp_ = 0.8
-x_ = jnp.linspace(-atmp_, atmp_, n)
+x_ = jnp.linspace(-atmp_, atmp_ + 1e-10, n)
 # Camber options are not elaborated yet.
 camber = 0.0
 y_ = camber * ( atmp_ ** 2 - x_ ** 2 )
-c_ = x_[n] - x_[1]
+c_ = x_[n] - x_[0]
 
 m = 5 # # of vortex points on the airfoil
 
@@ -70,7 +77,6 @@ g.mpath = 0 # Motion path parameter
 # 0 (no tail), 1 (DUTail 2 periods), 2 (UDTail 2 periods)
 # 3 (DUDUTail 4 periods), 4 (UDUDTail 4 periods)
 logging.info(f"mpath = {g.mpath}")
-
 ## Fluid Parameters
 
 rho_ = 0.001225 # g/cm^3 (air density)
@@ -118,3 +124,37 @@ logging.info(f"U_ = {U_}, V_ = {V_}, m = {m}, n = {n}")
 # -------------------------------------------------
 
 # Nondimentionalize the input variables.
+v_, t_, d_, e, c, x, y, a, beta, gMax, U, V = iginData(l_, phiT_, phiB_, c_, x_, y_, a_, beta_, f_, gMax_, U_, V_)
+
+# Threshold radius for modified Biot-Savart equation
+g.delta = 0.5 * c / (m - 1)
+q = 1.0 # Multiplier 0 < q <= 1
+g.delta *= q
+
+if itinc == 0: # Manual
+    dt = 0.025
+    nstep = 81
+else: # Automatic
+    nperiod = 1
+    dt = min( c / (m - 1), 0.1 * (4 / p) ) # 4 / p = duration of pitch
+    nstep = nperiod * math.ceil(2 / dt)
+
+logging.info(f"nstep = {nstep}, dt = {dt}")
+
+# Comparison of flapping, pitching and air speeds.
+
+air = math.sqrt(U_ ** 2 + V_ ** 2)
+logging.info(f"air speed = {air}")
+if air > 1e-03:
+    fk = 2 * f_ * d_ / air # Flapping/Air Speed Ratio
+    logging.info(f"flapping/air: speed ratio = {fk}")
+    r = 0.25 * (c_ / d_) * (p / t_) * (gMax / f_)
+    logging.info(f"pitching/flapping: speed ratio = {r}") # Pitch/Flapping Speed Ratio
+    k = fk * r # Pitch/Air Speed Ratio
+    logging.info(f"pitch/air: speed ratio = {k}") 
+else:
+    r = 0.25 * (c_ / d_) * (p / t_) * (gMax / f_)
+    logging.info(f"pitch/flapping: speed ratio = {r}")
+
+# Generate the vortex and collocation points on the airfoil.
+xv, yv, xc, yc, dfc, m = igmeshR(c, x, y, n, m)

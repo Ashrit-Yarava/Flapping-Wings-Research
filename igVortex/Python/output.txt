@@ -1,0 +1,14 @@
+-------------------------------------------
+igVortex
+-------------------------------------------
+mpath = 0
+ibios = 1
+l_ = 2.5, phiT_ = 45, phiB = -45, a = 0, beta = -30, f_ = 30
+gMax_ = 30, p = 5, rtOff = 0.0, tau = 0.0
+U_ = 100.0, V_ = 0.0, m = 5, n = 101
+T_ = 0.03333333333333333
+nstep = 25, dt = 0.08000000000000002
+air speed = 100.0
+flapping/air: speed ratio = 2.1213203435596424
+pitching/flapping: speed ratio = 0.592384397983551
+pitch/air: speed ratio = 1.2566369771957397
