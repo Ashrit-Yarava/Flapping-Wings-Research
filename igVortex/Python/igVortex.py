@@ -1,12 +1,17 @@
 import logging
 import math
+import numpy as np
 import jax.numpy as jnp
+
 jnp.arange(5)
 
 import src.globals as g
 
 from src.iginData import iginData
 from src.meshes.igmeshR import igmeshR
+from src.igmatrixCoef import igmatrixCoef
+from src.meshes.igcMESH import igcMESH
+from src.meshes.igcamberMESH import igcamberMESH
 
 # -------------------------------------------------
 # DEBUGGING PARAMETERS
@@ -22,6 +27,7 @@ g.wplot = 1
 # Zavoid 0 (no, faster) 1 (yes, slower)
 g.zavoid = 0
 # Velocity field plot: 0 (no) 1 (yes)
+vfplot = 1
 
 # -------------------------------------------------
 
@@ -45,11 +51,11 @@ n = 101
 # Read airfoil shape data to determine the chord length
 # Here use a formula to specify the airfoil shape
 atmp_ = 0.8
-x_ = jnp.linspace(-atmp_, atmp_ + 1e-10, n)
+x_ = np.linspace(-atmp_, atmp_ + 1e-10, n)
 # Camber options are not elaborated yet.
 camber = 0.0
 y_ = camber * ( atmp_ ** 2 - x_ ** 2 )
-c_ = x_[n] - x_[0]
+c_ = x_[n - 1] - x_[0]
 
 m = 5 # # of vortex points on the airfoil
 
@@ -101,12 +107,12 @@ logging.info(f"ibios = {g.ibios}")
 # space-fixed velocity plot: svInc (increment) svMax (max velocity)
 svInc = 0.025
 svMax = 2.5
-g.svCont = jnp.arange(0.0, svMax + 1e-10, svInc) # Add a tiny number to include endpoint.
+g.svCont = np.arange(0.0, svMax + 1e-10, svInc) # Add a tiny number to include endpoint.
 
 # wing-fixed velocity plot: wvInc (increment), wvMax (max velocity)
 wvInc = 0.1
 wvMax = 7.0
-g.wvCont = jnp.arange(0.0, svMax + 1e-10, wvInc)
+g.wvCont = np.arange(0.0, svMax + 1e-10, wvInc)
 
 g.ivCont = 0 # Use of svCont and wvCont 0 (no) 1 (yes)
 # The velocity range varies widely depending on the input parameters
@@ -158,3 +164,75 @@ else:
 
 # Generate the vortex and collocation points on the airfoil.
 xv, yv, xc, yc, dfc, m = igmeshR(c, x, y, n, m)
+
+# Time Marching
+# initialize the wake vortex magnitude array
+# GAMAw(1:2) step 1, GAMAw(3:4) step 2, GAMAw(5:6) step 3, ...
+# Leading Edge: odd components, Trailing edge: even components
+GAMAw = np.zeros((2 * nstep))
+# Initialize the free vortex magnitude array
+# This is the vortex to be shed or convected
+# GAMAf = np.zeros((2 * nstep))
+# Initialize the total wake vortex sum
+sGAMAw = 0.0
+# Initialize the total wake vortex number
+iGAMAw = 0
+# Initialize the # of vortices to be convected or shed.
+iGAMAf = 0
+# Initialize teh free+wake vortex location array (before convection)
+# ZF(1:2) step 1, ZF(3:4) step 2, ZF(5:6) step 3, ...
+# Leading Edge: odd components, Trailing edge: even components
+tmp = np.zeros((2 * nstep))
+ZF = tmp + 1j * tmp
+# Initialize teh wake vortex location array (after convection)
+# ZW(1:2) step 1, ZW(3:4) step 2, ZW(5:6) step 3, ...
+# Leading edge: odd components, Trailing Edge: even components
+ZW = tmp + 1j * tmp
+# This is further transformed into a new body-fixed coordinate system
+
+# Initialize the linear and angular impuse array
+tmp = np.zeros((nstep))
+g.impulseLb = tmp + 1j * tmp
+g.impulseAb = tmp
+g.impulseLw = tmp + 1j * tmp
+g.impulseAw = tmp
+
+g.LDOT = np.zeros((nstep))
+g.HDOT = np.zeros((nstep))
+
+# Vortex convection Time history sample
+# step 1: iGAMAw_1=0, iGAMAf_1=2
+    # GAMAw_1 = [0         , 0          ]; no wake vortex
+    # GAMAf_1 = [GAMA_1(1) , GAMA_1(m)  ]; vortex to be convected or shed
+    # ZF_1  = [ZV_1(1), ZV_1(m) ] = [ZF(1), ZF(2)]; leading and trailing edges
+    # ZW_1  = [ ZW_1(1)  ,  ZW_1(2)   ]; Convect ZF_1 
+    
+# step 2: iGAMAw_2=2, iGAMAf_2=4
+    # GAMAw_2=GAMAf_1=[GAMA_1(1) , GAMA_1(m) ]; wake vortex
+    # GAMAf_2=[GAMA_1(1) , GAMA_1(m), GAMA_2(1) , GAMA_2(m) ]; vortex to be convected or shed
+    # ZF_2  = [ZW_1(1)  , ZW_1(2) , ZV_1(1), ZV_1(m) ] 
+    #       = [ ZF_2(1)  ,  ZF_2(2) ,  ZF_2(3)  ,  ZF_2(4)  ]
+    # ZW_2  = [ ZW_2(1)  ,  ZW_2(2) ,  ZW_2(3)  ,  ZW_2(4)  ]; Convect ZF_2 in the current coord system
+    
+# step 3: iGAMAw_3=4, iGAMAf_3=6
+    # GAMAw_3=GAMAf_2=[GAMA_1(1) , GAMA_1(m), GAMA_2(1) , GAMA_2(m) ]; wake vortex
+    # GAMAf_3=[GAMA_1(1) , GAMA_1(m), GAMA_2(1) , GAMA_2(m), GAMA_3(1) , GAMA_3(m) ]; vortex to be convected or shed
+    # ZF_3  = [ZW_2(1)  , ZW_2(2) , ZW_2(3)  , ZW_2(4) , ZV_1(1), ZV_1(m) ]
+    #       = [ ZF_3(1)  ,  ZF_3(2) ,  ZF_3(3)  ,  ZF_3(4) ,  ZF_3(5)  ,  ZF_3(6)  ]
+    # ZW_3  = [ ZW_3(1)  ,  ZW_3(2) ,  ZW_3(3)  ,  ZW_3(4) ,  ZW_3(5)  ,  ZW_3(6)  ]; Convect ZF_3 in the current coord system
+
+igmatrixCoef(xv, yv, xc, yc, dfc, m)
+
+if vfplot == 1:
+    if camber == 0.0:
+        g.ZETA = igcMESH(c_, d_)
+    else:
+        g.ZETA = igcamberMESH(c_, d_, camber)
+
+
+# Start time marching
+for istep in range(nstep):
+    t = istep * dt
+    # Get airfoil motion parameters
+    alp, l, h, dalp, dl, dh = igairfoilM(t, e, beta, gMax, p, rtOff, U, V)
+    

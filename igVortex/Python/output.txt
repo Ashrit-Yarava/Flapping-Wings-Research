@@ -10,5 +10,5 @@ T_ = 0.03333333333333333
 nstep = 25, dt = 0.08000000000000002
 air speed = 100.0
 flapping/air: speed ratio = 2.1213203435596424
-pitching/flapping: speed ratio = 0.592384397983551
-pitch/air: speed ratio = 1.2566369771957397
+pitching/flapping: speed ratio = 0.5923843917914728
+pitch/air: speed ratio = 1.2566370615144569

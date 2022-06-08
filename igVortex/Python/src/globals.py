@@ -18,6 +18,7 @@ delta = None
 ibios = None
 impulseLb = None
 impulseAb = None
+impulseLw = None
 impulseAw = None
 LDOT = None
 HDOT = None
@@ -26,6 +27,7 @@ svCont = None
 wvCont = None
 ivCont = None
 vpFreq = None
+MVN = None
 
 # Folder configs
 
