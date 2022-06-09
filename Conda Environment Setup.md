@@ -1,6 +1,8 @@
 # Conda Package Manager and Package Setup
 
 > Note that this is entirely for setup on personal use computers, Google Colab provides all these packages preinstalled.
+>
+> Using Windows Subsystem for Linux to setup this environment is preferred compared to running it natively on Windows as JAX is more mature on the linux subsystem and will be less prone to bugs.
 
 1. Firstly, it is important to install a version of the conda package management environment. This will allow for a unified package versioning such that there are no discrepancies between the code. Installer webpage/information: https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links
 
