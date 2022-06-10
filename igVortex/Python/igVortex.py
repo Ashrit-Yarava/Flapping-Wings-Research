@@ -12,6 +12,7 @@ from src.meshes.igmeshR import igmeshR
 from src.igmatrixCoef import igmatrixCoef
 from src.meshes.igcMESH import igcMESH
 from src.meshes.igcamberMESH import igcamberMESH
+from src.igairfoilM import igairfoilM
 
 # -------------------------------------------------
 # DEBUGGING PARAMETERS
