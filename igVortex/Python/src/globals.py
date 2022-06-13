@@ -28,6 +28,9 @@ wvCont = None
 ivCont = None
 vpFreq = None
 MVN = None
+iplot = None
+ip = None
+nplot = None
 
 # Folder configs
 

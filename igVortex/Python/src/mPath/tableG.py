@@ -1,7 +1,9 @@
-from tableB import tableB
-from .. import globals as g
+
+from src.mPath.tableB import tableB
+import src.globals as g
 
 import numpy as np
+
 
 def tableG(t, p, rtOff):
     # Table function for an arbitary time.

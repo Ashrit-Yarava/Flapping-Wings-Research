@@ -1,5 +1,5 @@
-from DtableB import  DtableB
-from .. import globals as g
+import src.globals as g
+from src.mPath.DtableB import DtableB
 
 
 def DtableG(t, p, rtOff):
@@ -7,4 +7,4 @@ def DtableG(t, p, rtOff):
     Table function for an arbitary time.
     """
     tB = t % 2
-    return DtableG(tB + g.tau, p, rtOff)
+    return DtableB(tB + g.tau, p, rtOff)
