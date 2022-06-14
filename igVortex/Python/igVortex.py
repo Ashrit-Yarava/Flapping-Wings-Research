@@ -1,6 +1,7 @@
 from src.igairfoilM import igairfoilM
 from src.igairfoilV import igairfoilV
 from src.ignVelocityw2 import ignVelocityw2
+from src.igsolution import igsolution
 from src.mPath.igwing2global import igwing2global
 from src.meshes.igcamberMESH import igcamberMESH
 from src.meshes.igcMESH import igcMESH
@@ -243,7 +244,7 @@ for istep in range(1, nstep):
     t = istep * dt
     # Get airfoil motion parameters
     alp, l, h, dalp, dl, dh = igairfoilM(t, e, beta, gMax, p, rtOff, U, V)
-    g.LDOT[istep - 1] = dl # Subtraction is necessary when finding index.
+    g.LDOT[istep - 1] = dl  # Subtraction is necessary when finding index.
     g.HDOT[istep - 1] = dh
 
     # Get the global coordinates of the votex and collocation points on the wing
@@ -257,9 +258,6 @@ for istep in range(1, nstep):
     NC, ZV, ZC, ZVt, ZCt, ZWt = igwing2global(
         istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW)
 
-    print(ZWt)
-    break
-
     # Normal velocity on the airfoil due to the bound vortex.
     VN = igairfoilV(ZC, ZCt, NC, t, dl, dh, dalp)
 
@@ -270,3 +268,5 @@ for istep in range(1, nstep):
 
     # Solve the system of equations
     # MVN (coefficient matrix) has m-1 components so far; need to add mth components
+    print(istep)
+    GAMA = igsolution(m, VN, VNW, istep, sGAMAw)
