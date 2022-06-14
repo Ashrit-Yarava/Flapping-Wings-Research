@@ -14,8 +14,11 @@ import math
 import numpy as np
 import jax.numpy as jnp
 
+# Load jax for the first time before starting logging.
 jnp.arange(5)
 
+# Print only 4 decimal places, similar to MATLAB
+np.set_printoptions(precision=4)
 
 # -------------------------------------------------
 # DEBUGGING PARAMETERS
@@ -100,7 +103,8 @@ itinc = 1  # Time increment and # of time steps option
 # 0 (manually specified) 1 (automatic)
 # Specify nperiod ( # of periods ) below
 
-g.eps = 0.5e-6  # Distance between the source and the observation point to be judged as zero
+g.eps = 0.5e-6  # Distance between the source and the observation
+# point to judged as zero.
 
 g.ibios = 1  # Vortex core model (Modified Biot-Savart equation)
 # 0 (no) 1 (yes)
@@ -130,7 +134,8 @@ g.vpFreq = 1  # Frequency of velocity plots
 # -------------------------------------------------
 
 logging.info(
-    f"l_ = {l_}, phiT_ = {phiT_}, phiB = {phiB_}, a = {a_}, beta = {beta_}, f_ = {f_}")
+    f"l_ = {l_}, phiT_ = {phiT_}, phiB = {phiB_}, a = {a_}, " +
+    "beta = {beta_}, f_ = {f_}")
 logging.info(f"gMax_ = {gMax_}, p = {p}, rtOff = {rtOff}, tau = {g.tau}")
 logging.info(f"U_ = {U_}, V_ = {V_}, m = {m}, n = {n}")
 
@@ -241,11 +246,23 @@ if vfplot == 1:
 
 # Start time marching
 for istep in range(1, nstep):
-    t = istep * dt
+
+    t = (istep - 1) * dt
+    # Log the timestep
+    logging.info(f"------------------------")
+    logging.info(f"istep = {istep}\tt = {t}")
+
     # Get airfoil motion parameters
     alp, l, h, dalp, dl, dh = igairfoilM(t, e, beta, gMax, p, rtOff, U, V)
+
+    # Log all the data recieved from igairfoilM
+    logging.info(
+        f"=== igairfoilM output ===\nalp = {alp}\nl = {l}\nh = {h}\ndalp = {dalp}\ndl = {dl}\ndh = {dh}")
+
     g.LDOT[istep - 1] = dl  # Subtraction is necessary when finding index.
     g.HDOT[istep - 1] = dh
+
+    logging.info(f"New LDOT = {g.LDOT}\nnew HDOT = {g.HDOT}")
 
     # Get the global coordinates of the votex and collocation points on the wing
     # ZV,ZC      vortex and collocation points on the wing (global system)
@@ -258,15 +275,27 @@ for istep in range(1, nstep):
     NC, ZV, ZC, ZVt, ZCt, ZWt = igwing2global(
         istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW)
 
+    # Log all the changes again.
+    logging.info(
+        f"=== igwing2global output ===\nNC = {NC}\nZV = {ZV}\nZC = {ZC}\nZVt = {ZVt}\nZCt = {ZCt}\nZWt = {ZWt}")
+
     # Normal velocity on the airfoil due to the bound vortex.
     VN = igairfoilV(ZC, ZCt, NC, t, dl, dh, dalp)
+
+    logging.info(f"VN = {VN}")
 
     ######################## iGAMAw = 2 * (istep - 1) ########################
 
     # Normal velocity on the air foil due to the wake vortex.
     VNW = ignVelocityw2(m, ZC, NC, ZF, GAMAw, iGAMAw)
 
+    logging.info(f"VNW = {VNW}")
+
     # Solve the system of equations
-    # MVN (coefficient matrix) has m-1 components so far; need to add mth components
-    print(istep)
+    # MVN (coefficient matrix) has m-1 components so far; need to add mth component.
     GAMA = igsolution(m, VN, VNW, istep, sGAMAw)
+    logging.info(f"GAMA = {GAMA}")
+
+    # Plot Locations, ZW, of the wake vortices for the current step
+    # in a space fixed system.
+    igplotVortexw(iGAMAw, ZV, ZW, istep)

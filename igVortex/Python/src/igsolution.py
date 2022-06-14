@@ -1,5 +1,6 @@
 import numpy as np
 from src.DECOMP import DECOMP
+from src.SOLVER import SOLVER
 import src.globals as g
 
 
@@ -19,9 +20,9 @@ def igsolution(m, VN, VNW, istep, sGAMAw):
     # Originally m-1 components
     GAMA = VN - VNW
     # Add the mth component
-    GAMA[m - 2] = -sGAMAw
+    GAMA = np.append(GAMA, -sGAMAw)
     if istep == 1:
         # For nonvariable wing geometry, matrix inversion is done only once.
         g.ip, g.MVN = DECOMP(m, g.MVN)
-    # return SOLVER(m, g.MVN, GAMA, g.ip)
-    return 0
+        g.ip = g.ip.astype('int32')
+    return SOLVER(m, g.MVN, GAMA, g.ip)

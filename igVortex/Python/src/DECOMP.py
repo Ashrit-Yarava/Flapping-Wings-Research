@@ -16,31 +16,29 @@ def DECOMP(N, A):
     IP = np.zeros((N))
     IP[N - 1] = 1
 
-    for K in range(N):
-        if K < N - 1:
+    for K in range(1, N + 1):
+        if K < N:
             KP1 = K + 1
             M = K
-            for I in range(KP1, N):
-                if abs(A[I, K]) > abs(A[M, K]):
+            for I in range(KP1, N + 1):
+                if abs(A[I - 1, K - 1]) > abs(A[M - 1, K - 1]):
                     M = I
-            IP[K] = M
+            IP[K - 1] = M
             if M != K:
-                IP[N] = -IP[N]
-            T = A[M, K]
-            A[M, K] = A[K, K]
-            A[K, K] = T
+                IP[N - 1] = -IP[N - 1]
+            T = A[M - 1, K - 1]
+            A[M - 1, K - 1] = A[K - 1, K - 1]
+            A[K - 1, K - 1] = T
             if T != 0:
-                for I in range(KP1, N):
-                    A[I, K] = -A[I, K] / T
-                for J in range(KP1, N):
-                    T = A[M, J]
-                    A[M, J] = A[K, J]
-                    A[K, J] = T
+                for I in range(KP1, N + 1):
+                    A[I - 1, K - 1] = -A[I - 1, K - 1] / T
+                for J in range(KP1, N + 1):
+                    T = A[M - 1, J - 1]
+                    A[M - 1, J - 1] = A[K - 1, J - 1]
+                    A[K - 1, J - 1] = T
                     if T != 0:
-                        for I in range(KP1, N):
-                            A[I, J] = A[I, J] + A[I, K] * T
-        if A[K, K] == 0:
-            IP[N] = 0
-    print(IP)
-    sys.exit()
+                        for I in range(KP1, N + 1):
+                            A[I - 1, J - 1] = A[I - 1, J - 1] + A[I - 1, K - 1] * T
+        if A[K - 1, K - 1] == 0:
+            IP[N - 1] = 0
     return IP, A

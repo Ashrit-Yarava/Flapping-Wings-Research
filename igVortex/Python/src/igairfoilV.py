@@ -18,7 +18,7 @@ def igairfoilV(ZC, ZCt, NC, t, dl, dh, dalp):
     * VN: normal velocity (0, m-1)
     """
     # Airfoil velocity (complex valued) at the collcoation points.
-    V = complex(dl, dh) - 1j * dalp * ZCt
+    V = (dl + 1j * dh) -1j * dalp * ZCt
     # Normal velocity component of the airfoil (global)
     VN = np.real(np.conj(V) * NC)
 
