@@ -1,7 +1,13 @@
+import sys
+from src.force.igforceMoment import igforceMoment
+from src.force.igimpulses import igimpulses
 from src.igairfoilM import igairfoilM
 from src.igairfoilV import igairfoilV
+from src.igconvect import igconvect
 from src.ignVelocityw2 import ignVelocityw2
+from src.igplotMVortexw import igplotMVortexw
 from src.igsolution import igsolution
+from src.igvelocity import igvelocity
 from src.mPath.igwing2global import igwing2global
 from src.meshes.igcamberMESH import igcamberMESH
 from src.meshes.igcMESH import igcMESH
@@ -223,10 +229,12 @@ g.HDOT = np.zeros((nstep))
 
 # step 2: iGAMAw_2=2, iGAMAf_2=4
 # GAMAw_2=GAMAf_1=[GAMA_1(1) , GAMA_1(m) ]; wake vortex
-# GAMAf_2=[GAMA_1(1) , GAMA_1(m), GAMA_2(1) , GAMA_2(m) ]; vortex to be convected or shed
+# GAMAf_2=[GAMA_1(1) , GAMA_1(m), GAMA_2(1) , GAMA_2(m) ]; vortex to be
+# convected or shed
 # ZF_2  = [ZW_1(1)  , ZW_1(2) , ZV_1(1), ZV_1(m) ]
 #       = [ ZF_2(1)  ,  ZF_2(2) ,  ZF_2(3)  ,  ZF_2(4)  ]
-# ZW_2  = [ ZW_2(1)  ,  ZW_2(2) ,  ZW_2(3)  ,  ZW_2(4)  ]; Convect ZF_2 in the current coord system
+# ZW_2  = [ ZW_2(1)  ,  ZW_2(2) ,  ZW_2(3)  ,  ZW_2(4)  ]; Convect ZF_2 in the
+# current coord system
 
 # step 3: iGAMAw_3=4, iGAMAf_3=6
 # GAMAw_3=GAMAf_2=[GAMA_1(1) , GAMA_1(m), GAMA_2(1) , GAMA_2(m) ]; wake vortex
@@ -243,6 +251,11 @@ if vfplot == 1:
     else:
         g.ZETA = igcamberMESH(c_, d_, camber)
 
+# Initialize the impulses.
+g.impulseLb = np.zeros((nstep), dtype=np.complex64)
+g.impulseAb = np.zeros((nstep), dtype=np.complex64)
+g.impulseLw = np.zeros((nstep), dtype=np.complex64)
+g.impulseAw = np.zeros((nstep), dtype=np.complex64)
 
 # Start time marching
 for istep in range(1, nstep):
@@ -281,14 +294,12 @@ for istep in range(1, nstep):
 
     # Normal velocity on the airfoil due to the bound vortex.
     VN = igairfoilV(ZC, ZCt, NC, t, dl, dh, dalp)
-
     logging.info(f"VN = {VN}")
 
     ######################## iGAMAw = 2 * (istep - 1) ########################
 
     # Normal velocity on the air foil due to the wake vortex.
     VNW = ignVelocityw2(m, ZC, NC, ZF, GAMAw, iGAMAw)
-
     logging.info(f"VNW = {VNW}")
 
     # Solve the system of equations
@@ -298,4 +309,58 @@ for istep in range(1, nstep):
 
     # Plot Locations, ZW, of the wake vortices for the current step
     # in a space fixed system.
-    igplotVortexw(iGAMAw, ZV, ZW, istep)
+    # igplotVortexw(iGAMAw, ZV, ZW, istep)
+
+    # Calculate the linear and angular impulses on the airfoil (after shedding)
+    # Use the translating system (this is airframe inertia system)
+    # Include all of the bound voritces and wake vortices
+    # For itsep = 1, there is no wake-vortices
+    igimpulses(istep, ZVt, ZWt, a, GAMA, m, GAMAw, iGAMAw)
+    logging.info(
+        f"New Impulses:\nimpulseLb = {g.impulseLb}\nimpulseLw = {g.impulseLw}\nimpulseAb = {g.impulseAb}\nimpulseAw = {g.impulseAw}")
+
+    # Plot velocity field
+    # if vfplot == 1:
+    #     igplotVelocity(istep, ZV, ZW, a, GAMA, m, GAMAw, iGAMAw, alp, l, h)
+
+    ######################## iGAMAf = 2 * istep ########################
+
+    # Calculate at the velocity at the free and wake vortices to be shed or convected.
+    iGAMAf = 2 * istep
+    ZF[2 * istep - 2] = ZV[0]  # Append the coordinate of the leading edge.
+    # Append the coordinate of the trainling edge.
+    ZF[2 * istep - 1] = ZV[m - 1]
+    VELF = igvelocity(ZF, iGAMAf, GAMA, m, ZV, GAMAw, iGAMAw)
+    logging.info(f"VELF = {VELF}")
+
+    # Convect GAMAf from ZF to ZW
+    ZW = igconvect(ZF, VELF, dt, iGAMAf)
+
+    # Increment the number of wake vortices
+    iGAMAw = iGAMAw + 2
+    GAMAw[2 * istep - 2] = GAMA[0]
+    GAMAw[2 * istep - 1] = GAMA[m - 1]
+
+    # Add the new wake vortices from the current step
+    sGAMAw = sGAMAw + GAMA[0] + GAMA[m - 1]
+
+    ######################## iGAMAw = 2 * istep ########################
+
+    # All the connected vortices become wake vortices
+    # Set these wake vortex to be the free vortices in the next step.
+    # Where two more free vortices (leading and trailing edge vortices)
+    # will be added before convection.
+
+    ZF = ZW
+    print(ZF)
+    sys.exit(0)
+
+    # PRINT OUT ALL THE VARIABLES AT THE END OF THE LOOP
+
+
+# Calculate the dimensional force and moment on the airfoil.
+# The force and moment are per unit length (cm) in out-of-plane direction
+igforceMoment(rho_, v_, d_, nstep, dt, U, V)
+
+# Print and plot the magnitudes of the dimensional wake vortex.
+igplotMVortexw(v_, d_, GAMAw, nstep)
