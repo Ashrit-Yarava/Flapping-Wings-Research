@@ -258,13 +258,22 @@ g.impulseLw = np.zeros((nstep), dtype=np.complex64)
 g.impulseAw = np.zeros((nstep), dtype=np.complex64)
 
 # Start time marching
-for istep in range(1, nstep):
+
+logging.info(f"========================")
+logging.info(f"Time Marching")
+logging.info(f"========================")
+
+for istep in range(1, 10 + 1):
+    print(istep)
 
     t = (istep - 1) * dt
     # Log the timestep
     logging.info(f"------------------------")
     logging.info(f"istep = {istep}\tt = {t}")
+    logging.info(f"------------------------")
 
+    logging.info(
+        f"=== igairfoilM input ===\nt = {t}\ne = {e}\nbeta = {beta}\ngMax = {gMax}\np = {p}\nrtOff = {rtOff}\nU = {U}\nV = {V}")
     # Get airfoil motion parameters
     alp, l, h, dalp, dl, dh = igairfoilM(t, e, beta, gMax, p, rtOff, U, V)
 
@@ -294,17 +303,21 @@ for istep in range(1, nstep):
 
     # Normal velocity on the airfoil due to the bound vortex.
     VN = igairfoilV(ZC, ZCt, NC, t, dl, dh, dalp)
-    logging.info(f"VN = {VN}")
+    logging.info(f"=== igairfoilV output ===\nVN = {VN}")
 
     ######################## iGAMAw = 2 * (istep - 1) ########################
 
     # Normal velocity on the air foil due to the wake vortex.
+    logging.info(
+        f"=== ignVelocityw2 input ===\nm = {m}\nZC = {ZC}\nNC = {NC}\nZF = {ZF}\nGAMAw = {GAMAw}\niGAMAw = {iGAMAw}")
     VNW = ignVelocityw2(m, ZC, NC, ZF, GAMAw, iGAMAw)
+    logging.info("=== ignVelocityw2 output ===")
     logging.info(f"VNW = {VNW}")
 
     # Solve the system of equations
     # MVN (coefficient matrix) has m-1 components so far; need to add mth component.
     GAMA = igsolution(m, VN, VNW, istep, sGAMAw)
+    logging.info("=== igsolution ===")
     logging.info(f"GAMA = {GAMA}")
 
     # Plot Locations, ZW, of the wake vortices for the current step
@@ -327,14 +340,31 @@ for istep in range(1, nstep):
 
     # Calculate at the velocity at the free and wake vortices to be shed or convected.
     iGAMAf = 2 * istep
-    ZF[2 * istep - 2] = ZV[0]  # Append the coordinate of the leading edge.
+    # Append the coordinate of the leading edge.
+
+    if istep == 1:  # Check for first index because the original starting array is much larger.
+        ZF[2 * istep - 2] = ZV[0]
+    else:
+        ZF = np.concatenate((ZF, np.array([ZV[0]])))
+
     # Append the coordinate of the trainling edge.
-    ZF[2 * istep - 1] = ZV[m - 1]
+    if istep == 1:  # Check for first index because the original starting array is much larger.
+        ZF[2 * istep - 1] = ZV[m - 1]
+    else:
+        ZF = np.concatenate((ZF, np.array([ZV[m - 1]])))
+
+    logging.info(
+        f"=== igvelocity input ===\nZF = {ZF}\niGAMAf = {iGAMAf}\nGAMA = {GAMA}\nm = {m}\nZV = {ZV}\nGAMAw = {GAMAw}\niGAMAw = {iGAMAw}")
+
     VELF = igvelocity(ZF, iGAMAf, GAMA, m, ZV, GAMAw, iGAMAw)
-    logging.info(f"VELF = {VELF}")
+
+    logging.info(f"=== igvelocity output ===\nVELF = {VELF}")
 
     # Convect GAMAf from ZF to ZW
+    logging.info(
+        f"=== igconvect input ===\nZF = {ZF}\nVELF = {VELF}\ndt = {dt}\niGAMAf = {iGAMAf}")
     ZW = igconvect(ZF, VELF, dt, iGAMAf)
+    logging.info(f"=== igconvect output ===\nZW = {ZW}")
 
     # Increment the number of wake vortices
     iGAMAw = iGAMAw + 2
@@ -352,15 +382,13 @@ for istep in range(1, nstep):
     # will be added before convection.
 
     ZF = ZW
-    print(ZF)
-    sys.exit(0)
 
     # PRINT OUT ALL THE VARIABLES AT THE END OF THE LOOP
 
 
 # Calculate the dimensional force and moment on the airfoil.
 # The force and moment are per unit length (cm) in out-of-plane direction
-igforceMoment(rho_, v_, d_, nstep, dt, U, V)
+# igforceMoment(rho_, v_, d_, nstep, dt, U, V)
 
 # Print and plot the magnitudes of the dimensional wake vortex.
-igplotMVortexw(v_, d_, GAMAw, nstep)
+# igplotMVortexw(v_, d_, GAMAw, nstep)

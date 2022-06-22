@@ -17,7 +17,7 @@ def igimpulses(istep, ZVt, ZWt, a, GAMA, m, GAMAw, iGAMAw):
     * GAMAw: wake vortices
     * iGAMAw: # of wake vortices
     """
-
+    istep = istep - 1 # Adjust the istep for indexing.
     g.impulseLb[istep] = complex(0.0, 0.0)
     g.impulseAb[istep] = complex(0.0, 0.0)
     g.impulseLw[istep] = complex(0.0, 0.0)

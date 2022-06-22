@@ -15,7 +15,7 @@ def velVortex(GAM, z, z0):
     * v: velocity complex(vx, vy)
     """
 
-    r = (z - z0)
+    r = np.abs(z - z0)
 
     if(g.ibios == 0):
         g.eps = g.eps * 1000
