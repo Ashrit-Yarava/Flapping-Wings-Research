@@ -20,18 +20,17 @@ def ignVelocityw2(m, ZC, NC, ZF, GAMAw, iGAMAw):
     if g.ibios == 0:
         g.eps = g.eps * 1000
 
-        for i in range(0, m - 1):
-            VNW[i] = 0.0
-            for j in range(iGAMAw - 1):  # skipped for iGAMAw = 0 in istep = 1
-                r = abs(ZC[i] - ZF[j])
+        for i in range(1, m):
+            for j in range(1, iGAMAw):
+                r = np.abs(ZC[i - 1] - ZF[j - 1])
                 GF = complex(0.0, 0.0)
                 if r > g.eps:
-                    GF = 1.0 / (ZC[i] - ZF[j])
-                VNW[i] += GAMAw[j] * np.image(NC[i] * GF) / (2.0 * np.pi)
+                    GF = 1.0 / (ZC[i - 1] - ZF[j - 1])
+                VNW[i - 1] = VNW[i - 1] + GAMAw[j - 1] * \
+                    np.imag(NC[i - 1] * GF) / (2.0 * np.pi)
 
     elif g.ibios == 1:
         for i in range(1, m):
-            VNW[i - 1] = 0.0
             for j in range(1, iGAMAw + 1):
                 r = np.abs(ZC[i - 1] - ZF[j - 1])
                 if r < g.eps:
@@ -40,5 +39,7 @@ def ignVelocityw2(m, ZC, NC, ZF, GAMAw, iGAMAw):
                     GF = 1.0 / (ZC[i - 1] - ZF[j - 1])
                     if r < g.delta:
                         GF = GF * (r / g.delta) ** 2
-                VNW[i - 1] = VNW[i - 1] + GAMAw[j - 1] * np.imag(NC[i - 1] * GF) / (2.0 * np.pi)
+                VNW[i - 1] = VNW[i - 1] + GAMAw[j - 1] * \
+                    np.imag(NC[i - 1] * GF) / (2.0 * np.pi)
+
     return VNW
