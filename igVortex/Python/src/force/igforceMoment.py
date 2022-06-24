@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+import matplotlib.pyplot as plt
 import src.globals as g
 
 
@@ -66,7 +67,19 @@ def igforceMoment(rho_, v_, d_, nstep, dt, U, V):
         moment[IT] = -m_ * moment[IT]
 
     ITa = np.linspace(1, nstep, nstep, endpoint=True)
-    # MORE GRAPHS HERE
+
+    plt.plot(ITa, np.real(force), 'x-k')
+    plt.grid(True)
+    plt.savefig(f"{g.folder}fx.tif")
+    plt.clf()
+    plt.plot(ITa, np.imag(force), '+-k')
+    plt.grid(True)
+    plt.savefig(f"{g.folder}fy.tif")
+    plt.clf()
+    plt.plot(ITa, moment, 'o-r')
+    plt.grid(True)
+    plt.savefig(f"{g.folder}m.tif")
+    plt.clf()
 
     # Calculate the average forces and moment
     Fx = np.real(force)

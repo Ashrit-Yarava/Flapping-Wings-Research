@@ -1,4 +1,4 @@
-import sys
+import os
 from src.force.igforceMoment import igforceMoment
 from src.force.igimpulses import igimpulses
 from src.igairfoilM import igairfoilM
@@ -6,6 +6,7 @@ from src.igairfoilV import igairfoilV
 from src.igconvect import igconvect
 from src.ignVelocityw2 import ignVelocityw2
 from src.igplotMVortexw import igplotMVortexw
+from src.igplotVortexw import igplotVortexw
 from src.igsolution import igsolution
 from src.igvelocity import igvelocity
 from src.mPath.igwing2global import igwing2global
@@ -14,6 +15,7 @@ from src.meshes.igcMESH import igcMESH
 from src.igmatrixCoef import igmatrixCoef
 from src.meshes.igmeshR import igmeshR
 from src.iginData import iginData
+from src.velocityPlot.igplotVelocity import igplotVelocity
 import src.globals as g
 import logging
 import math
@@ -21,10 +23,19 @@ import numpy as np
 import jax.numpy as jnp
 
 # Load jax for the first time before starting logging.
+# Any warnings printed out will not be shown in the log.
 jnp.arange(5)
 
 # Print only 4 decimal places, similar to MATLAB
 np.set_printoptions(precision=4)
+
+# Directory Creation
+# Makes the directories that need to be created.
+if not os.path.exists(g.folder):
+    os.makedirs(g.folder)
+
+if not os.path.exists(f"{g.folder}wake/"):
+    os.makedirs(f"{g.folder}wake/")
 
 # -------------------------------------------------
 # DEBUGGING PARAMETERS
@@ -260,11 +271,10 @@ g.impulseAw = np.zeros((nstep), dtype=np.complex64)
 # Start time marching
 
 logging.info(f"========================")
-logging.info(f"Time Marching")
+logging.info(f" Start Of Time Marching ")
 logging.info(f"========================")
 
-for istep in range(1, 10 + 1):
-    print(istep)
+for istep in range(1, nstep + 1):
 
     t = (istep - 1) * dt
     # Log the timestep
@@ -295,7 +305,7 @@ for istep in range(1, 10 + 1):
     #            ZW=ZF for istep >=2 (see the last command of the time marching loop)
 
     NC, ZV, ZC, ZVt, ZCt, ZWt = igwing2global(
-        istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW)
+        istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW, U, V)
 
     # Log all the changes again.
     logging.info(
@@ -322,7 +332,7 @@ for istep in range(1, 10 + 1):
 
     # Plot Locations, ZW, of the wake vortices for the current step
     # in a space fixed system.
-    # igplotVortexw(iGAMAw, ZV, ZW, istep)
+    igplotVortexw(iGAMAw, ZV, ZW, istep)
 
     # Calculate the linear and angular impulses on the airfoil (after shedding)
     # Use the translating system (this is airframe inertia system)
@@ -333,8 +343,9 @@ for istep in range(1, 10 + 1):
         f"New Impulses:\nimpulseLb = {g.impulseLb}\nimpulseLw = {g.impulseLw}\nimpulseAb = {g.impulseAb}\nimpulseAw = {g.impulseAw}")
 
     # Plot velocity field
-    # if vfplot == 1:
-    #     igplotVelocity(istep, ZV, ZW, a, GAMA, m, GAMAw, iGAMAw, alp, l, h)
+    if vfplot == 1:
+        igplotVelocity(istep, ZV, ZW, a, GAMA, m, GAMAw,
+                       iGAMAw, U, V, alp, l, h, dalp, dl, dh)
 
     ######################## iGAMAf = 2 * istep ########################
 
@@ -385,6 +396,9 @@ for istep in range(1, 10 + 1):
 
     # PRINT OUT ALL THE VARIABLES AT THE END OF THE LOOP
 
+logging.info(f"========================")
+logging.info(f"  End Of Time Marching  ")
+logging.info(f"========================")
 
 # Calculate the dimensional force and moment on the airfoil.
 # The force and moment are per unit length (cm) in out-of-plane direction

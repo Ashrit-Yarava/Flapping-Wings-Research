@@ -2,3 +2,7 @@
 **/*.tif
 **/__pycache__/
 **/*.bmp
+
+# Log Files
+output.txt
+pyrightconfig.json

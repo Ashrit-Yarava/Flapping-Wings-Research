@@ -3,9 +3,14 @@ import numpy as np
 import src.globals as g
 
 import matplotlib.pyplot as plt
+from src.mPath.periods2.from_bottom_up import cosUpTailG_2
+
+from src.mPath.periods2.from_top_down import cosTailG_2
+from src.mPath.periods4.from_bottom_up import cosUpTailG
+from src.mPath.periods4.from_top_down import cosTailG
 
 
-def igwing2global(istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW):
+def igwing2global(istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW, U, V):
     # Get global position of the wing colllocation and vortex points
     # given coordinates in the wing-fixed coordinate system
     # INPUT Variables(all nondimentional)
@@ -30,26 +35,23 @@ def igwing2global(istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW):
     # %{
     # %Displacement of the translating system: x0,z0
     # %(including the contribiition of the speed of air)
-    # switch mpath
-    #     case 0
-    #         x0=-U*t+0.5*( cos(pi*(t+tau))+e )*cos(beta);
-    #         z0=-V*t+0.5*( cos(pi*(t+tau))+e )*sin(beta);
-    #     case 1
-    #         x0=-U*t+0.5*cosTailG_2(t+tau, e)*cos(beta);
-    #         z0=-V*t+0.5*cosTailG_2(t+tau, e)*sin(beta);
-    #     case 2
-    #         x0=-U*t+0.5*cosUpTailG_2(t+tau, e)*cos(beta);
-    #         z0=-V*t+0.5*cosUpTailG_2(t+tau, e)*sin(beta);
-    #     case 3
-    #         x0=-U*t+0.5*cosTailG(t+tau, e)*cos(beta);
-    #         z0=-V*t+0.5*cosTailG(t+tau, e)*sin(beta);
-    #     case 4
-    #         x0=-U*t+0.5*cosUpTailG(t+tau, e)*cos(beta);
-    #         z0=-V*t+0.5*cosUpTailG(t+tau, e)*sin(beta);
-    #     otherwise
-    # end
-    # %x0=-U*t+0.5*(cos(pi*(t+tau))+e)*cos(beta);
-    # %z0=-V*t+0.5*(cos(pi*(t+tau))+e)*sin(beta);
+    # if g.mpath == 0:
+    #     x0 = -U*t+0.5*(np.cos(np.pi*(t+g.tau))+np.e)*np.cos(g.beta)
+    #     z0 = -V*t+0.5*(np.cos(np.pi*(t+g.tau))+np.e)*np.sin(g.beta)
+    # elif g.mpath == 1:
+    #     x0 = -U*t+0.5*cosTailG_2(t+g.tau, np.e)*np.cos(g.beta)
+    #     z0 = -V*t+0.5*cosTailG_2(t+g.tau, np.e)*np.sin(g.beta)
+    # elif g.mpath == 2:
+    #     x0 = -U*t+0.5*cosUpTailG_2(t+g.tau, np.e)*np.cos(g.beta)
+    #     z0 = -V*t+0.5*cosUpTailG_2(t+g.tau, np.e)*np.sin(g.beta)
+    # elif g.mpath == 3:
+    #     x0 = -U*t+0.5*cosTailG(t+g.tau, np.e)*np.cos(g.beta)
+    #     z0 = -V*t+0.5*cosTailG(t+g.tau, np.e)*np.sin(g.beta)
+    # elif g.mpath == 4:
+    #     x0 = -U*t+0.5*cosUpTailG(t+g.tau, np.e)*np.cos(g.beta)
+    #     z0 = -V*t+0.5*cosUpTailG(t+g.tau, np.e)*np.sin(g.beta)
+    # x0=-U*t+0.5*(cos(pi*(t+tau))+e)*cos(beta);
+    # z0=-V*t+0.5*(cos(pi*(t+tau))+e)*sin(beta);
     # %}
     zt = complex(l, h)
     ZWt = ZW  # for istep = 0, ZW is assigned to the initial zero value.
@@ -85,7 +87,8 @@ def igwing2global(istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW):
         NC = nc * expmia
 
     if g.iplot == 1:
-        pass  # GRAPH TODO
+        plt.plot(np.real(ZC), np.imag(ZC))
+        plt.plot()
 
     if g.nplot == 1:
         plt.plot(np.real(ZC), np.imag(ZC), 'o')
