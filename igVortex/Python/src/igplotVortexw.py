@@ -24,12 +24,13 @@ def igplotVortexw(iGAMAw, ZV, ZW, istep):
             # No wake vortex in istep = 1
             plt.plot(XPLTF, YPLTF, '-k')
             plt.savefig(f"{g.folder}wake/wake_{istep}.tif")
+            plt.clf()
         else:
             XPLTW = np.real(ZW)
             YPLTW = np.imag(ZW)
             
-            iodd = np.linspace(1, iGAMAw - 1, 2)
-            ieven = np.linspace(2, iGAMAw, 2)
+            iodd = np.linspace(1, iGAMAw - 1, 2).astype(np.uint)
+            ieven = np.linspace(2, iGAMAw, 2).astype(np.uint)
             XPLTWo = XPLTW[iodd - 1]
             YPLTWo = YPLTW[iodd - 1]
             XPLTWe = XPLTW[ieven - 1]
@@ -38,3 +39,4 @@ def igplotVortexw(iGAMAw, ZV, ZW, istep):
             plt.plot(XPLTF, YPLTF, '-k', XPLTWo,
                      YPLTWo, 'ok', XPLTWe, YPLTWe, 'or')
             plt.savefig(f"{g.folder}wake/wake_{istep - 1}.tif")
+            plt.clf()

@@ -3,7 +3,7 @@ import numpy as np
 from src.globals import ZETA
 
 
-def igVELOCITYF(Z, ZV, ZW, GAMA, m, GAMAw, iGAMAw, U, V, alp, dalp, dl, dh):
+def igVELOCITYF(Z, ZV, ZW, a, GAMA, m, GAMAw, iGAMAw, U, V, alp, dalp, dl, dh):
     """
     Calculation of the velocity fields VVSpace (wing) = [u v] using the wing-fixed mesh ZETA.
 
@@ -31,12 +31,13 @@ def igVELOCITYF(Z, ZV, ZW, GAMA, m, GAMAw, iGAMAw, U, V, alp, dalp, dl, dh):
 
     # Contribution from the bound vortices
     for j in range(1, m + 1):
-        VV = VV - (0.5 * 1j / np.pi) * GAMA[j - 1] / (Z - ZV[j - 1])
+        VV = VV - (0.5 * 1j / np.pi) * \
+            GAMA[j - 1] / (np.reshape(Z - ZV[j - 1], (196,)))
         # assume (or HOPE) the denominator is nonzero.
 
     # Contribution from the wake vortex.
     for J in range(1, iGAMAw):
-        VV = VV - (0.5 * 1j / np.pi) * GAMAw[J - 1] / (Z - ZW[J - 1])
+        VV = VV - (0.5 * 1j / np.pi) * GAMAw[J - 1] / (np.reshape(Z - ZW[J - 1], (196,)))
 
     # Conver the complex velocity to ordinary velocity
     VV = np.conj(VV)
@@ -48,7 +49,5 @@ def igVELOCITYF(Z, ZV, ZW, GAMA, m, GAMAw, iGAMAw, U, V, alp, dalp, dl, dh):
 
     # Contribution from the free stream (velocity of the airfoil-fixed system
     # is included).
-    VVwing = VV + np.exp(1j * alp) * ((U - dl) + 1j * (V - dh)
-                                      ) * np.ones(sz) + 1j * (ZETA + a) * dalp
 
     return VVspace

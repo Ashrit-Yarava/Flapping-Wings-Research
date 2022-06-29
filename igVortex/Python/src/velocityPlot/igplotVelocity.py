@@ -1,4 +1,6 @@
+from matplotlib import scale
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 import src.globals as g
 from src.velocityPlot.igVELF import igVELF
@@ -39,7 +41,7 @@ def igplotVelocity(istep, ZV, ZW, a, GAMA, m, GAMAw, iGAMAw, U, V, alp, l, h, da
     # Plot the velocity field, every vpFreq seps.
     if istep % g.vpFreq == 0:
         # Calculate the velocity field.
-        ROT = np.exp(1j * alp)
+        ROT = np.exp(-1j * alp)
         RZETA = (g.ZETA + a) * ROT
 
         X = np.real(RZETA) + l
@@ -53,7 +55,7 @@ def igplotVelocity(istep, ZV, ZW, a, GAMA, m, GAMAw, iGAMAw, U, V, alp, l, h, da
             VVspace = igVELF(Z, ZV, ZW, GAMA, m, GAMAw,
                              iGAMAw, U, V, alp, dalp, dl, dh)
         else:
-            VVspace = igVELOCITYF(Z, ZV, ZW, GAMA, m, GAMAw,
+            VVspace = igVELOCITYF(Z, ZV, ZW, a, GAMA, m, GAMAw,
                                   iGAMAw, U, V, alp, dalp, dl, dh)
 
         # Plot the velocity field in the space-fixed system.
@@ -61,17 +63,23 @@ def igplotVelocity(istep, ZV, ZW, a, GAMA, m, GAMAw, iGAMAw, U, V, alp, l, h, da
         U = np.real(VVspace)
         V = np.imag(VVspace)
         S = np.sqrt(U * U + V * V)
+        S = np.reshape(
+            S, (int(math.sqrt(S.shape[0])), int(math.sqrt(S.shape[0]))))
 
         plt.quiver(X, Y, U, V)
-        plt.plot(XPLTF, YPLTF, '-k')
-        plt.savefig(f"{g.folder}velocity/spaceVelocity_{istep}.bmp")
+        plt.plot(XPLTF, YPLTF, '-b')
+        plt.savefig(f"{g.folder}velocity/spaceVelocity_{istep}.png")
         plt.clf()
 
         if g.ivCont == 1:
+            plt.contour(X, Y, S, g.svCont)
             plt.contourf(X, Y, S, g.svCont)
         else:
+            plt.contour(X, Y, S)
             plt.contourf(X, Y, S)
 
-        plt.plot(XPLTF, YPLTF, '-k')
-        plt.savefig(f"{g.folder}velocity/spaceSpeed_{istep}.bmp")
+        plt.colorbar()
+
+        plt.plot(XPLTF, YPLTF, '-b', linewidth='4')
+        plt.savefig(f"{g.folder}velocity/spaceSpeed_{istep}.png")
         plt.clf()

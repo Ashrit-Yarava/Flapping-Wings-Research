@@ -21,6 +21,8 @@ import logging
 import math
 import numpy as np
 import jax.numpy as jnp
+import seaborn as sns
+sns.set_theme()
 
 # Load jax for the first time before starting logging.
 # Any warnings printed out will not be shown in the log.
@@ -36,6 +38,9 @@ if not os.path.exists(g.folder):
 
 if not os.path.exists(f"{g.folder}wake/"):
     os.makedirs(f"{g.folder}wake/")
+
+if not os.path.exists(f"{g.folder}velocity/"):
+    os.makedirs(f"{g.folder}velocity/")
 
 # -------------------------------------------------
 # DEBUGGING PARAMETERS
@@ -339,10 +344,17 @@ for istep in range(1, nstep + 1):
     # Include all of the bound voritces and wake vortices
     # For itsep = 1, there is no wake-vortices
     igimpulses(istep, ZVt, ZWt, a, GAMA, m, GAMAw, iGAMAw)
+
     logging.info(
         f"New Impulses:\nimpulseLb = {g.impulseLb}\nimpulseLw = {g.impulseLw}\nimpulseAb = {g.impulseAb}\nimpulseAw = {g.impulseAw}")
 
     # Plot velocity field
+
+    logging.info(
+        f"=== igplotVelocity input ===\nZV = {ZV}\nZW = {ZW}\na = {a}\nGAMA = {GAMA}\nm = {m}\nGAMAw = {GAMAw}\niGAMAw = {iGAMAw}\nU = {U}\nV = {V}")
+    logging.info(
+        f"alp = {alp}\nl = {l}\nh = {h}\ndalp = {dalp}\ndl = {dl}\ndh = {dh}")
+
     if vfplot == 1:
         igplotVelocity(istep, ZV, ZW, a, GAMA, m, GAMAw,
                        iGAMAw, U, V, alp, l, h, dalp, dl, dh)
@@ -402,7 +414,8 @@ logging.info(f"========================")
 
 # Calculate the dimensional force and moment on the airfoil.
 # The force and moment are per unit length (cm) in out-of-plane direction
-# igforceMoment(rho_, v_, d_, nstep, dt, U, V)
+igforceMoment(rho_, v_, d_, nstep, dt, U, V)
+
 
 # Print and plot the magnitudes of the dimensional wake vortex.
-# igplotMVortexw(v_, d_, GAMAw, nstep)
+igplotMVortexw(v_, d_, GAMAw, nstep)

@@ -1,7 +1,12 @@
 **/.DS_Store
+
+# Image files.
 **/*.tif
-**/__pycache__/
+**/*.png
 **/*.bmp
+
+**/__pycache__/
+
 
 # Log Files
 output.txt

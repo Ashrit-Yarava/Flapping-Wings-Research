@@ -18,13 +18,11 @@ def igplotMVortexw(v_, d_, GAMAw, nstep):
     gama_ = v_ * d_
     logging.info(f"gama_ * GAMAw = {gama_ * GAMAw}")
 
-    iodd = np.linspace(1, 2 * nstep - 1, 2)
-    ieven = np.linspace(2, 2 * nstep, 2)
-
     # Dimensional alues of the circulation
-    GAMAwo = gama_ * GAMAw[iodd - 1]
-    GAMAwe = gama_ * GAMAw[ieven - 1]
-    it = range(1, nstep + 1)
+    GAMAwo = gama_ * GAMAw[0::2]
+    GAMAwe = gama_ * GAMAw[1::2]
+    it = list(range(1, nstep + 1))
 
     plt.plot(it, GAMAwo, 'o-k', it, GAMAwe, 'o-r')
     plt.savefig(f"{g.folder}GAMAw.tif")
+    plt.clf()

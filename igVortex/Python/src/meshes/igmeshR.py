@@ -60,9 +60,11 @@ def igmeshR(c, x, y, n, m):
         plt.axis('equal')
         plt.grid(True)
         plt.savefig(globals.folder + "mesh.tif")
+        plt.clf()
     elif(globals.mplot == 2):
         plt.plot(xv, yv, 'rs', x, y, 'o', xx, f(xx), '-')
         # plt.axis([-a, a, -0.1, h + 0.1]) # Questionable code. h not defined before.
         plt.legend(['Equal arc length', 'Equal abscissa'])
+        plt.clf()
     mNew = m + 4
     return xv, yv, xc, yc, dfc, mNew

@@ -88,7 +88,7 @@ def igwing2global(istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW, U, V):
 
     if g.iplot == 1:
         plt.plot(np.real(ZC), np.imag(ZC))
-        plt.plot()
+        plt.clf()
 
     if g.nplot == 1:
         plt.plot(np.real(ZC), np.imag(ZC), 'o')
@@ -101,5 +101,6 @@ def igwing2global(istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW, U, V):
         ytip = yaif + sf * np.imag(NC)
         plt.plot([xaif, xtip], [yaif, ytip])
         plt.savefig(g.folder + 'w2g_' + str(t) + '.tif')
+        plt.clf()
 
     return NC, ZV, ZC, ZVt, ZCt, ZWt
