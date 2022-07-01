@@ -17,7 +17,6 @@ def igplotVortexw(iGAMAw, ZV, ZW, istep):
     XPLTF = np.real(ZV)
     YPLTF = np.imag(ZV)
 
-
     # Plot and save to a file.
     if g.wplot == 1:
         if istep == 1:
@@ -28,13 +27,12 @@ def igplotVortexw(iGAMAw, ZV, ZW, istep):
         else:
             XPLTW = np.real(ZW)
             YPLTW = np.imag(ZW)
-            
-            iodd = np.linspace(1, iGAMAw - 1, 2).astype(np.uint)
-            ieven = np.linspace(2, iGAMAw, 2).astype(np.uint)
-            XPLTWo = XPLTW[iodd - 1]
-            YPLTWo = YPLTW[iodd - 1]
-            XPLTWe = XPLTW[ieven - 1]
-            YPLTWe = YPLTW[ieven - 1]
+
+            XPLTWo = XPLTW[0:(iGAMAw - 1):2]
+            YPLTWo = YPLTW[0:(iGAMAw - 1):2]
+            XPLTWe = XPLTW[1:iGAMAw:2]
+            YPLTWe = YPLTW[1:iGAMAw:2]
+
             # Plot wake vortices from the leading edge black, and from the trailing edge red circles.
             plt.plot(XPLTF, YPLTF, '-k', XPLTWo,
                      YPLTWo, 'ok', XPLTWe, YPLTWe, 'or')

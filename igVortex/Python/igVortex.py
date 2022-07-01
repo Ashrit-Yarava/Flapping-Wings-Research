@@ -23,6 +23,9 @@ import numpy as np
 import jax.numpy as jnp
 import seaborn as sns
 sns.set_theme()
+import matplotlib.pyplot as plt
+
+plt.ioff() # Turn off interactive mode. (There's no point in using it.)
 
 # Load jax for the first time before starting logging.
 # Any warnings printed out will not be shown in the log.
@@ -218,20 +221,18 @@ iGAMAf = 0
 # Initialize teh free+wake vortex location array (before convection)
 # ZF(1:2) step 1, ZF(3:4) step 2, ZF(5:6) step 3, ...
 # Leading Edge: odd components, Trailing edge: even components
-tmp = np.zeros((2 * nstep))
-ZF = tmp + 1j * tmp
+ZF = np.zeros((2 * nstep)) + 1j * np.zeros((2 * nstep))
 # Initialize teh wake vortex location array (after convection)
 # ZW(1:2) step 1, ZW(3:4) step 2, ZW(5:6) step 3, ...
 # Leading edge: odd components, Trailing Edge: even components
-ZW = tmp + 1j * tmp
+ZW = np.zeros((2 * nstep)) + 1j * np.zeros((2 * nstep))
 # This is further transformed into a new body-fixed coordinate system
 
-# Initialize the linear and angular impuse array
-tmp = np.zeros((nstep))
-g.impulseLb = tmp + 1j * tmp
-g.impulseAb = tmp
-g.impulseLw = tmp + 1j * tmp
-g.impulseAw = tmp
+# Initialize the linear and angular impuse arrays
+g.impulseLb = np.zeros((2 * nstep)) + 1j * np.zeros((2 * nstep))
+g.impulseAb = np.zeros((2 * nstep))
+g.impulseLw = np.zeros((2 * nstep)) + 1j * np.zeros((2 * nstep))
+g.impulseAw = np.zeros((2 * nstep))
 
 g.LDOT = np.zeros((nstep))
 g.HDOT = np.zeros((nstep))
@@ -415,7 +416,6 @@ logging.info(f"========================")
 # Calculate the dimensional force and moment on the airfoil.
 # The force and moment are per unit length (cm) in out-of-plane direction
 igforceMoment(rho_, v_, d_, nstep, dt, U, V)
-
 
 # Print and plot the magnitudes of the dimensional wake vortex.
 igplotMVortexw(v_, d_, GAMAw, nstep)
