@@ -1,31 +1,35 @@
-import os
-from src.force.igforceMoment import igforceMoment
-from src.force.igimpulses import igimpulses
-from src.igairfoilM import igairfoilM
-from src.igairfoilV import igairfoilV
-from src.igconvect import igconvect
-from src.ignVelocityw2 import ignVelocityw2
-from src.igplotMVortexw import igplotMVortexw
-from src.igplotVortexw import igplotVortexw
-from src.igsolution import igsolution
-from src.igvelocity import igvelocity
-from src.mPath.igwing2global import igwing2global
-from src.meshes.igcamberMESH import igcamberMESH
-from src.meshes.igcMESH import igcMESH
-from src.igmatrixCoef import igmatrixCoef
-from src.meshes.igmeshR import igmeshR
-from src.iginData import iginData
-from src.velocityPlot.igplotVelocity import igplotVelocity
-import src.globals as g
-import logging
-import math
-import numpy as np
-import jax.numpy as jnp
 import seaborn as sns
-sns.set_theme()
+import jax.numpy as jnp
+import numpy as np
+import math
+import logging
+import src.globals as g
+from src.velocityPlot.igplotVelocity import igplotVelocity
+from src.iginData import iginData
+from src.meshes.igmeshR import igmeshR
+from src.igmatrixCoef import igmatrixCoef
+from src.meshes.igcMESH import igcMESH
+from src.meshes.igcamberMESH import igcamberMESH
+from src.mPath.igwing2global import igwing2global
+from src.igvelocity import igvelocity
+from src.igsolution import igsolution
+from src.igplotVortexw import igplotVortexw
+from src.igplotMVortexw import igplotMVortexw
+from src.ignVelocityw2 import ignVelocityw2
+from src.igconvect import igconvect
+from src.igairfoilV import igairfoilV
+from src.igairfoilM import igairfoilM
+from src.force.igimpulses import igimpulses
+from src.force.igforceMoment import igforceMoment
+import os
 import matplotlib.pyplot as plt
+from timeit import default_timer
 
-plt.ioff() # Turn off interactive mode. (There's no point in using it.)
+starting_time = default_timer()
+
+sns.set_theme()
+
+plt.ioff()  # Turn off interactive mode. (There's no point in using it.)
 
 # Load jax for the first time before starting logging.
 # Any warnings printed out will not be shown in the log.
@@ -419,3 +423,7 @@ igforceMoment(rho_, v_, d_, nstep, dt, U, V)
 
 # Print and plot the magnitudes of the dimensional wake vortex.
 igplotMVortexw(v_, d_, GAMAw, nstep)
+
+ending_time = default_timer()
+
+logging.info(f"TIME ELAPSED: {ending_time - starting_time}")
