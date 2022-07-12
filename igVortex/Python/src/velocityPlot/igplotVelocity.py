@@ -52,8 +52,8 @@ def igplotVelocity(istep, ZV, ZW, a, GAMA, m, GAMAw, iGAMAw, U, V, alp, l, h, da
             # Skip source points that coincides with the obseration points.
             # (slower)
 
-            VVspace = igVELF(Z, ZV, ZW, GAMA, m, GAMAw,
-                             iGAMAw, U, V, alp, dalp, dl, dh)
+            VVspace, g.eps = igVELF(Z, ZV, ZW, GAMA, m, GAMAw,
+                                    iGAMAw, U, V, alp, dalp, dl, dh, g.eps)
         else:
             VVspace = igVELOCITYF(Z, ZV, ZW, a, GAMA, m, GAMAw,
                                   iGAMAw, U, V, alp, dalp, dl, dh)

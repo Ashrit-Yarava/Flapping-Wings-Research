@@ -3,11 +3,11 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 from scipy.integrate import quad
 
-from .. import globals
+import src.globals as globals
 
 
 def igmeshR(c, x, y, n, m):
-    a = 0.5 * c # half chord length
+    a = 0.5 * c  # half chord length
 
     f = CubicSpline(x, y)
     df = f.derivative(nu=1)
@@ -15,11 +15,12 @@ def igmeshR(c, x, y, n, m):
     s = [0]
 
     for i in range(n - 1):
-        ds = quad( lambda z: np.sqrt(1 + df(z) ** 2), x[i], x[i+1] )
-        s.append(s[i] + ds[0]) # Get the first value, cross-checked with matlab code for validation.
-    
+        ds = quad(lambda z: np.sqrt(1 + df(z) ** 2), x[i], x[i+1])
+        # Get the first value, cross-checked with matlab code for validation.
+        s.append(s[i] + ds[0])
+
     s = np.array(s)
-    
+
     g = CubicSpline(s, x)
     dS = s[n - 1] / (m - 1)
 
@@ -54,7 +55,7 @@ def igmeshR(c, x, y, n, m):
     dfc = df(xc)
 
     xx = np.linspace(-a, a + 1e-10, 101)
-    if(globals.mplot == 1):   
+    if(globals.mplot == 1):
         plt.plot(xv, yv, 'ro', xc, yc, 'x', xx, f(xx), '-')
         plt.legend(['Vortex Points', 'Collocation Points'])
         plt.axis('equal')
@@ -63,7 +64,6 @@ def igmeshR(c, x, y, n, m):
         plt.clf()
     elif(globals.mplot == 2):
         plt.plot(xv, yv, 'rs', x, y, 'o', xx, f(xx), '-')
-        # plt.axis([-a, a, -0.1, h + 0.1]) # Questionable code. h not defined before.
         plt.legend(['Equal arc length', 'Equal abscissa'])
         plt.clf()
     mNew = m + 4

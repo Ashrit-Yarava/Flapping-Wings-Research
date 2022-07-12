@@ -1,7 +1,8 @@
 import numpy as np
 from src.velVortex import velVortex
 
-def igVELF(Z, ZV, ZW, GAMA, m, GAMAw, iGAMAw, U, V, alp, dalp, dl, dh):
+
+def igVELF(Z, ZV, ZW, GAMA, m, GAMAw, iGAMAw, U, V, alp, dalp, dl, dh, eps):
     """
     Calculation of the velocity fields VVspace (wing) = [u v] using the wing-fixed mesh ZETA.
 
@@ -29,14 +30,14 @@ def igVELF(Z, ZV, ZW, GAMA, m, GAMAw, iGAMAw, U, V, alp, dalp, dl, dh):
     for J in range(1, m + 1):
         for i in range(1, sz[0] + 1):
             for j in range(1, sz[1] + 1):
-                VV[i - 1, j - 1] = VV[i - 1, j - 1] + \
-                    velVortex(GAMA[J - 1], Z[i - 1, j - 1], ZV[J - 1])
+                temp, eps = velVortex(GAMA[J - 1], Z[i - 1, j - 1], ZV[J - 1])
+                VV[i - 1, j - 1] = VV[i - 1, j - 1] + temp
 
     # Contribution from the wake vortex.
     for J in range(1, iGAMAw + 1):
         for i in range(1, sz[0] + 1):
             for j in range(1, sz[1] + 1):
-                VV[i - 1, j - 1] = VV[i - 1, j - 1] + \
-                    velVortex(GAMA[J - 1], Z[i - 1, j - 1], ZV[j - 1])
+                temp, eps = velVortex(GAMA[J - 1], Z[i - 1, j - 1], ZV[j - 1])
+                VV[i - 1, j - 1] = VV[i - 1, j - 1] + temp
 
-    return VV
+    return VV, eps

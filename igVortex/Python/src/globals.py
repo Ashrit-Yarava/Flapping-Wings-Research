@@ -33,6 +33,5 @@ ip = None
 nplot = None
 
 # Folder configs
-
-folder = "fig/"
-log_file = "output.txt"
+log_file = None
+folder = None
