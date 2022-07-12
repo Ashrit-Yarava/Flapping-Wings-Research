@@ -3,7 +3,7 @@ import numpy as np
 from src.velVortex import velVortex
 
 
-def igvelocity(ZF, iGAMAf, GAMA, m, ZV, GAMAw, iGAMAw):
+def igvelocity(ZF, iGAMAf, GAMA, m, ZV, GAMAw, iGAMAw, eps):
     """
     Calculates the velocity at free & wake vortex sites in the global system.
     Note that the mabient air speed is included, as it is negative.
@@ -25,11 +25,11 @@ def igvelocity(ZF, iGAMAf, GAMA, m, ZV, GAMAw, iGAMAw):
     VEL = np.zeros((iGAMAf), dtype=np.complex128)
     for i in range(iGAMAf):
         for j in range(m):
-            VELF = velVortex(GAMA[j], ZF[i], ZV[j])
+            VELF, eps = velVortex(GAMA[j], ZF[i], ZV[j], eps)
             VEL[i] = VEL[i] + VELF
         for j in range(iGAMAw):
-            VELF = velVortex(GAMAw[j], ZF[i], ZF[j])
+            VELF, eps = velVortex(GAMAw[j], ZF[i], ZF[j], eps)
             VEL[i] = VEL[i] + VELF
         # Air velocity
         # VEL[i] += complex(U - dl, V - dh)
-    return np.array(VEL) * -1
+    return np.array(VEL) * -1, eps

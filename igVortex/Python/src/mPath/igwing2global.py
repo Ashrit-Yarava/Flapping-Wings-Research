@@ -10,7 +10,7 @@ from src.mPath.periods4.from_bottom_up import cosUpTailG
 from src.mPath.periods4.from_top_down import cosTailG
 
 
-def igwing2global(istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW, U, V):
+def igwing2global(istep, a, alp, l, h, xv, yv, xc, yc, dfc, ZW):
     # Get global position of the wing colllocation and vortex points
     # given coordinates in the wing-fixed coordinate system
     # INPUT Variables(all nondimentional)
@@ -86,6 +86,11 @@ def igwing2global(istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW, U, V):
         # Unit normal vector of the airfoil in the global system
         NC = nc * expmia
 
+    return NC, ZV, ZC, ZVt, ZCt, ZWt
+
+
+def igwing2global_plot(ZC, NC, t):
+
     if g.iplot == 1:
         plt.plot(np.real(ZC), np.imag(ZC))
         plt.clf()
@@ -102,5 +107,3 @@ def igwing2global(istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW, U, V):
         plt.plot([xaif, xtip], [yaif, ytip])
         plt.savefig(g.folder + 'w2g_' + str(t) + '.tif')
         plt.clf()
-
-    return NC, ZV, ZC, ZVt, ZCt, ZWt
