@@ -83,9 +83,18 @@
 
 4. Now install the requirements found in the `requirements.txt` file
 
-   ```
-   pip3 install -r requirements.txt
-   ```
+   1. First clone the repository.
+
+      ```
+      git clone https://github.com/Ashrit-Yarava/Flapping-Wings-Research.git
+      cd Flapping-Wings-Research/
+      ```
+
+   2. Install the pip requirements.
+
+      ```
+      pip3 install -r requirements.txt
+      ```
 
 5. This will install all the other dependencies for the project as well as jupyter notebook.
 
