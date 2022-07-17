@@ -1,3 +1,4 @@
+import jax
 from src import *
 import matplotlib.pyplot as plt
 import os
@@ -101,9 +102,9 @@ else:
 
 xv, yv, xc, yc, dfc, m = mesh_r(c, x, y, n, m, mplot, folder)
 GAMAw = jnp.zeros((2 * nstep))
-sGAMAw = 0.0
-iGAMAw = 0
-iGAMAf = 0
+sGAMAw = jnp.array(0.0)
+iGAMAw = jnp.array(0)
+iGAMAf = jnp.array(0)
 ZF = jnp.zeros((2 * nstep)) + 1j * jnp.zeros((2 * nstep))
 ZW = jnp.zeros((2 * nstep)) + 1j * jnp.zeros((2 * nstep))
 
@@ -111,7 +112,7 @@ LDOT = np.zeros(nstep)
 HDOT = np.zeros(nstep)
 
 MVN = jnp.array(matrix_coef(xv, yv, xc, yc, dfc, m))
-ip = None
+ip = jnp.zeros(10)
 
 ZETA = None
 if vfplot == 1:
@@ -119,6 +120,8 @@ if vfplot == 1:
         ZETA = c_mesh(c_, d_)
     else:
         ZETA = camber_mesh(c_, d_, camber)
+
+ZETA = jnp.array(ZETA)
 
 impulseLb = jnp.zeros((2 * nstep)) + 1j * jnp.zeros((2 * nstep))
 impulseAb = jnp.zeros((2 * nstep))
@@ -158,7 +161,7 @@ HDOT = HDOT.at[istep - 1].set(dh)
 NC, ZV, ZC, ZVt, ZCt, ZWt = wing_global(
     istep, a, alp, l, h, xv, yv, xc, yc, dfc, ZW)
 VN = air_foil_v(ZC, ZCt, NC, t, dl, dh, dalp)
-VNW, eps = n_velocity_w2(m, ZC, NC, ZF, GAMAw, iGAMAw, ibios, eps, delta)
+VNW, eps = velocity_w2(m, ZC, NC, ZF, GAMAw, iGAMAw, ibios, eps, delta)
 GAMA = VN - VNW
 GAMA = jnp.append(GAMA, -sGAMAw)
 ip, MVN = DECOMP(m, MVN)
@@ -177,6 +180,11 @@ sGAMAw = sGAMAw + GAMA[0] + GAMA[m - 1]
 
 ZF = ZW
 
+wing_global = jax.jit(wing_global) # Works
+air_foil_v = jax.jit(air_foil_v)
+SOLVER = jax.jit(SOLVER, static_argnums=(0))
+impulses = jax.jit(impulses, static_argnums=(5, 7))
+velocity_w2 = jax.jit(velocity_w2)
 
 for istep in tqdm(range(2, nstep + 1)):
     t = (istep - 1) * dt
@@ -187,18 +195,17 @@ for istep in tqdm(range(2, nstep + 1)):
     NC, ZV, ZC, ZVt, ZCt, ZWt = wing_global(
         istep, a, alp, l, h, xv, yv, xc, yc, dfc, ZW)
 
-    wing_global_plot(ZC, NC, folder, t)
 
     VN = air_foil_v(ZC, ZCt, NC, t, dl, dh, dalp)
 
     air_foil_v_plot(ZC, NC, VN, vplot, folder, t)
 
-    VNW, eps = n_velocity_w2(m, ZC, NC, ZF, GAMAw, iGAMAw, ibios, eps, delta)
+    VNW, eps = velocity_w2(m, ZC, NC, ZF, GAMAw, iGAMAw, ibios, eps, delta)
     GAMA = VN - VNW
     GAMA = jnp.append(GAMA, -sGAMAw)
     GAMA = SOLVER(m, MVN, GAMA, ip)
 
-    plot_vortex(iGAMAw, ZV, ZW, istep, wplot, folder)
+    # plot_vortex(iGAMAw, ZV, ZW, istep, wplot, folder)
 
     impulseLb, impulseAb, impulseLw, impulseAw = impulses(
         istep, ZVt, ZWt, a, GAMA, m, GAMAw, iGAMAw, impulseLb, impulseAb, impulseLw, impulseAw)
@@ -221,6 +228,10 @@ for istep in tqdm(range(2, nstep + 1)):
     sGAMAw = sGAMAw + GAMA[0] + GAMA[m - 1]
 
     ZF = ZW
+
+    # Plotting Stuff
+    wing_global_plot(ZC, NC, folder, t)
+
 
 force_movement(rho_, v_, d_, nstep, dt, U, V, impulseLb,
                impulseLw, impulseAb, impulseAw, LDOT, HDOT, folder)

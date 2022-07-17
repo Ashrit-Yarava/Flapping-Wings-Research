@@ -12,7 +12,7 @@ def inorm_1(dfc, alp, expmia):
 
 
 def wing_global(istep, a, alp, l, h, xv, yv, xc, yc, dfc, ZW):
-    zt = complex(l, h)
+    zt = l + 1j * h
     ZWt = lax.cond(istep != 1, lambda x, y: x - y, lambda x, y: x, ZW, zt)
     zv = xv + 1j * yv
     zc = xc + 1j * yc
