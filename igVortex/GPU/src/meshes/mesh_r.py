@@ -5,18 +5,23 @@ import matplotlib.pyplot as plt
 
 
 def mesh_r(c, x, y, n, m, mplot, folder):
-    a = 0.5 * c
+    a = 0.5 * c  # half chord length
+
     f = CubicSpline(x, y)
     df = f.derivative(nu=1)
+
     s = [0]
+
     for i in range(n - 1):
         ds = quad(lambda z: np.sqrt(1 + df(z) ** 2), x[i], x[i+1])
+        # Get the first value, cross-checked with matlab code for validation.
         s.append(s[i] + ds[0])
 
     s = np.array(s)
 
     g = CubicSpline(s, x)
     dS = s[n - 1] / (m - 1)
+
     xv = np.zeros((m + 4))
     xv[0] = -a
     xv[1] = g(dS * 0.25)
@@ -24,6 +29,10 @@ def mesh_r(c, x, y, n, m, mplot, folder):
 
     for i in range(2, m):
         xv[i + 1] = g(dS * (i - 1))
+
+    xv[m + 1] = g(dS * (m - 1 - 0.5))
+    xv[m + 2] = g(dS * (m - 1 - 0.25))
+    xv[m + 3] = a
 
     yv = f(xv)
 
@@ -43,7 +52,7 @@ def mesh_r(c, x, y, n, m, mplot, folder):
 
     dfc = df(xc)
 
-    xx = np.linspace(-a, a + 1e-10, 101)
+    xx = np.arange(-a, a + 1e-10, 101)
 
     if(mplot == 1):
         plt.plot(xv, yv, 'ro', xc, yc, 'x', xx, f(xx), '-')

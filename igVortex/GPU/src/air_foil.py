@@ -44,10 +44,10 @@ def air_foil_m(t, e, beta, gMax, p, rtOff, U, V, tau, mpath):
         dh = -V - 0.5 * jnp.pi * jnp.sin(jnp.pi * (t + tau)) * jnp.sin(beta)
 
         # Rotational Motion
-        gam = tableG(t, p, rtOff)
+        gam = tableG(t, p, rtOff, tau)
         gam = gMax * gam
         alp = 0.5 * jnp.pi - beta + gam
-        dgam = DtableG(t, p, rtOff)
+        dgam = DtableG(t, p, rtOff, tau)
         dalp = gMax * dgam
 
     elif(mpath == 1):

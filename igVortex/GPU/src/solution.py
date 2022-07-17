@@ -1,5 +1,5 @@
 import jax.numpy as jnp
-from jax import lax
+import numpy as np
 
 
 def SOLVER(N, A, B, IP):
@@ -39,14 +39,6 @@ def SOLVER(N, A, B, IP):
 
 
 def DECOMP(N, A):
-    """
-    Real A(NDIM, NDIM), T
-    Integer IP(NDIM)
-    Matrix Traingularization by gaussian elimination
-    N = order of matrix. NDIM = declared dimension of array A.
-    A = matrix to be traingularized
-    IP(K), K .LT. N = INDEX OF K-TH PIVOT ROW
-    """
 
     IP = jnp.zeros((N))
     IP = IP.at[N - 1].set(1)
@@ -73,32 +65,9 @@ def DECOMP(N, A):
                     A = A.at[K - 1, J - 1].set(T)
                     if T != 0:
                         for I in range(KP1, N + 1):
-                            A = A.at[I - 1, J -
-                                     1].set(A[I - 1, J - 1] + A[I - 1, K - 1] * T)
+                            A = A.at[I - 1, J - 1].set(
+                                A[I - 1, J - 1] + A[I - 1, K - 1] * T)
         if A[K - 1, K - 1] == 0:
             IP = IP.at[N - 1].set(0)
-    return IP, A
 
-
-def solution(m, VN, VNW, istep, sGAMAw, MVN, ip):
-    """
-    Solution
-    Input:
-    * istep: time step
-    * m: # of bound vorticies
-    * VN: normal velocity at the collocation points (m-1 components) by the bound vortex.
-    * VNW: normal velocity at the collocation points (m-1 components) by the wake vortex.
-    * sGAMAw: sum of the wake vorticies
-    Output:
-    * GAMA: bound vorticies
-    """
-
-    # Originally m-1 components
-    GAMA = VN - VNW
-    # Add the mth component
-    GAMA = jnp.append(GAMA, -sGAMAw)
-    if istep == 1:
-        # For nonvariable wing geometry, matrix inversion is done only once.
-        ip, MVN = DECOMP(m, MVN)
-        ip = ip.astype('int32')
-    return SOLVER(m, MVN, GAMA, ip), MVN, ip
+    return IP.astype('int32'), A

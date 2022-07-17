@@ -18,3 +18,5 @@ def matrix_coef(xv, yv, xc, yc, dfc, m):
             MVN[i, j] = np.imag(nc[i] * gf) / (2.0 * np.pi)
     for j in range(m):
         MVN[m - 1, j] = 1.0
+
+    return MVN

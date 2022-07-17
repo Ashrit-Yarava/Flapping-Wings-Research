@@ -1,7 +1,4 @@
-
 from src.mPath.tableB import tableB
-
-import numpy as np
 
 
 def tableG(t, p, rtOff, tau):

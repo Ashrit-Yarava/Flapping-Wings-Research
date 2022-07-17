@@ -14,7 +14,7 @@ def impulses(istep, ZVt, ZWt, a, GAMA, m, GAMAw, iGAMAw, impulseLb, impulseAb, i
     for I in range(iGAMAw):
         impulseLw = impulseLw.at[istep].set(
             impulseLw[istep] - 1j * GAMAw[I] * ZWt[I])
-        impulseAw = impulseAw[istep].set(
+        impulseAw = impulseAw.at[istep].set(
             impulseAw[istep] - 0.5 * GAMAw[I] * jnp.abs(ZWt[I]) ** 2)
 
     return impulseLb, impulseAb, impulseLw, impulseAw

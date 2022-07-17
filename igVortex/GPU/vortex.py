@@ -1,9 +1,17 @@
-import jax.numpy as jnp
-import numpy as np
-import logging
-import os
 from src import *
-from src.time_march import time_march
+import matplotlib.pyplot as plt
+import os
+import logging
+import numpy as np
+from jax import lax
+import jax.numpy as jnp
+from tqdm import tqdm
+
+from timeit import default_timer
+starting_time = default_timer()
+
+jnp.set_printoptions(precision=4)
+jnp.arange(0, 5)
 
 log_file = "output.txt"
 logging.basicConfig(filename=log_file, filemode="w",
@@ -57,10 +65,10 @@ eps = 0.5e-6
 ibios = 1
 svInc = 0.025
 svMax = 2.5
-svCont = np.linspace(0.0, svMax, svInc, endpoint=True)
+svCont = np.arange(0.0, svMax + 1e-10, svInc)
 wvInc = 0.1
 wvMax = 7.0
-wvCont = np.linspace(0.0, svMax, wvInc, endpoint=True)
+wvCont = np.arange(0.0, svMax + 1e-10, wvInc)
 ivCont = 0
 vpFreq = 1
 
@@ -77,7 +85,7 @@ if itinc == 0:
 else:
     nperiod = 1
     dt = min(c / (m - 1), 0.1 * (4 / p))
-    nstep = nperiod * np.ceil(2 / dt)
+    nstep = int(nperiod * np.ceil(2 / dt))
 
 # Comparison of flapping, pitching and air speeds
 air = np.sqrt(U_ ** 2 + V_ ** 2)
@@ -92,16 +100,18 @@ else:
     k = None
 
 xv, yv, xc, yc, dfc, m = mesh_r(c, x, y, n, m, mplot, folder)
-
-GAMAw = np.zeros((2 * nstep))
+GAMAw = jnp.zeros((2 * nstep))
 sGAMAw = 0.0
 iGAMAw = 0
 iGAMAf = 0
-ZF = np.zeros((2 * nstep)) + 1j * np.zeros((2 * nstep))
-ZW = np.zeros((2 * nstep)) + 1j * np.zeros((2 * nstep))
+ZF = jnp.zeros((2 * nstep)) + 1j * jnp.zeros((2 * nstep))
+ZW = jnp.zeros((2 * nstep)) + 1j * jnp.zeros((2 * nstep))
 
-LDOT = np.zeros((nstep))
-HDOT = np.zeros((nstep))
+LDOT = np.zeros(nstep)
+HDOT = np.zeros(nstep)
+
+MVN = jnp.array(matrix_coef(xv, yv, xc, yc, dfc, m))
+ip = None
 
 ZETA = None
 if vfplot == 1:
@@ -110,10 +120,10 @@ if vfplot == 1:
     else:
         ZETA = camber_mesh(c_, d_, camber)
 
-impulseLb = np.zeros((2 * nstep)) + 1j * np.zeros((2 * nstep))
-impulseAb = np.zeros((2 * nstep))
-impulseLw = np.zeros((2 * nstep)) + 1j * np.zeros((2 * nstep))
-impulseAw = np.zeros((2 * nstep))
+impulseLb = jnp.zeros((2 * nstep)) + 1j * jnp.zeros((2 * nstep))
+impulseAb = jnp.zeros((2 * nstep))
+impulseLw = jnp.zeros((2 * nstep)) + 1j * jnp.zeros((2 * nstep))
+impulseAw = jnp.zeros((2 * nstep))
 
 # Debugging Parameters
 logging.info(f"mpath = {mpath}")
@@ -137,39 +147,96 @@ logging.info(f"pitch/air: speed ratio = {k}")
 LDOT = jnp.array(LDOT)
 HDOT = jnp.array(HDOT)
 
-# Time Marching
-for istep in range(1, nstep + 1):
-    t = (istep - 1) * dt
-    alp, l, h, dalp, dl, dh = air_foil_m(t, e, beta, gMax, p, rtOff, U, V)
+logging.info("===== Time March =====")
 
+istep = 1
+t = (istep - 1) * dt
+alp, l, h, dalp, dl, dh = air_foil_m(
+    t, e, beta, gMax, p, rtOff, U, V, tau, mpath)
+LDOT = LDOT.at[istep - 1].set(dl)
+HDOT = HDOT.at[istep - 1].set(dh)
+NC, ZV, ZC, ZVt, ZCt, ZWt = wing_global(
+    istep, a, alp, l, h, xv, yv, xc, yc, dfc, ZW)
+VN = air_foil_v(ZC, ZCt, NC, t, dl, dh, dalp)
+VNW, eps = n_velocity_w2(m, ZC, NC, ZF, GAMAw, iGAMAw, ibios, eps, delta)
+GAMA = VN - VNW
+GAMA = jnp.append(GAMA, -sGAMAw)
+ip, MVN = DECOMP(m, MVN)
+GAMA = SOLVER(m, MVN, GAMA, ip)
+impulseLb, impulseAb, impulseLw, impulseAw = impulses(
+    istep, ZVt, ZWt, a, GAMA, m, GAMAw, iGAMAw, impulseLb, impulseAb, impulseLw, impulseAw)
+iGAMAf = 2 * istep
+ZF = ZF.at[2 * istep - 2].set(ZV[0])
+ZF = ZF.at[2 * istep - 1].set(ZV[m - 1])
+VELF = velocity(ZF, iGAMAf, GAMA, m, ZV, GAMAw, iGAMAw, eps, ibios, delta)
+ZW = ZF[0:iGAMAf] + VELF[0:iGAMAf] * dt
+iGAMAw = iGAMAw + 2
+GAMAw = GAMAw.at[2 * istep - 2].set(GAMA[0])
+GAMAw = GAMAw.at[2 * istep - 1].set(GAMA[m - 1])
+sGAMAw = sGAMAw + GAMA[0] + GAMA[m - 1]
+
+ZF = ZW
+
+
+for istep in tqdm(range(2, nstep + 1)):
+    t = (istep - 1) * dt
+    alp, l, h, dalp, dl, dh = air_foil_m(
+        t, e, beta, gMax, p, rtOff, U, V, tau, mpath)
     LDOT = LDOT.at[istep - 1].set(dl)
     HDOT = HDOT.at[istep - 1].set(dh)
-
     NC, ZV, ZC, ZVt, ZCt, ZWt = wing_global(
-        istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW, U, V)
+        istep, a, alp, l, h, xv, yv, xc, yc, dfc, ZW)
+
+    wing_global_plot(ZC, NC, folder, t)
+
     VN = air_foil_v(ZC, ZCt, NC, t, dl, dh, dalp)
 
-    VNW, eps = n_velocity_w2(m, ZC, NC, ZF, GAMAw, iGAMAw, ibios, eps, delta)
+    air_foil_v_plot(ZC, NC, VN, vplot, folder, t)
 
-    GAMA, MVN, ip = solution(m, VN, VNW, istep, sGAMAw, MVN, ip)
+    VNW, eps = n_velocity_w2(m, ZC, NC, ZF, GAMAw, iGAMAw, ibios, eps, delta)
+    GAMA = VN - VNW
+    GAMA = jnp.append(GAMA, -sGAMAw)
+    GAMA = SOLVER(m, MVN, GAMA, ip)
+
+    plot_vortex(iGAMAw, ZV, ZW, istep, wplot, folder)
 
     impulseLb, impulseAb, impulseLw, impulseAw = impulses(
         istep, ZVt, ZWt, a, GAMA, m, GAMAw, iGAMAw, impulseLb, impulseAb, impulseLw, impulseAw)
-
     iGAMAf = 2 * istep
 
-    ZF = lax.cond(istep == 1, lambda zf,
-                  zv: zf.at[2 * istep - 2].set(zv[0]), lambda zf, zv: jnp.concatenate(zf, zv[0]), ZF, ZV)
+    ZF = jnp.concatenate((ZF, jnp.array([ZV[0]])))
+    ZF = jnp.concatenate((ZF, jnp.array([ZV[m - 1]])))
 
-    ZF = lax.cond(istep == 1, lambda zf,
-                  zv: zf.at[2 * istep - 1].set(zv[m - 1]), lambda zf, zv: jnp.concatenate(zf, zv[m - 1]), ZF, ZV)
+    VELF = velocity(ZF, iGAMAf, GAMA, m, ZV, GAMAw, iGAMAw, eps, ibios, delta)
 
-    VELF, eps = velocity(ZF, iGAMAf, GAMA, m, ZV, GAMAw, iGAMAw, eps)
+    ZW = ZF[0:iGAMAf] + VELF[0:iGAMAf] * dt
 
-    ZW = ZF * VELF * dt
+    if vfplot == 1:
+        eps = plot_velocity(istep, ZV, ZW, a, GAMA, m, GAMAw, iGAMAw, U, V, alp, l, h,
+                            dalp, dl, dh, zavoid, ivCont, svCont, vpFreq, ZETA, eps, ibios, delta, folder)
 
     iGAMAw = iGAMAw + 2
     GAMAw = GAMAw.at[2 * istep - 2].set(GAMA[0])
     GAMAw = GAMAw.at[2 * istep - 1].set(GAMA[m - 1])
-
     sGAMAw = sGAMAw + GAMA[0] + GAMA[m - 1]
+
+    ZF = ZW
+
+force_movement(rho_, v_, d_, nstep, dt, U, V, impulseLb,
+               impulseLw, impulseAb, impulseAw, LDOT, HDOT, folder)
+
+gama_ = v_ * d_
+logging.info(f"gama_ * GAMAw = {gama_ * GAMAw}")
+
+# Dimensional alues of the circulation
+GAMAwo = gama_ * GAMAw[0::2]
+GAMAwe = gama_ * GAMAw[1::2]
+it = list(range(1, nstep + 1))
+
+plt.plot(it, GAMAwo, 'o-k', it, GAMAwe, 'o-r')
+plt.savefig(f"{folder}GAMAw.tif")
+plt.clf()
+
+ending_time = default_timer()
+
+logging.info(f"TIME ELAPSED: {ending_time - starting_time}")
