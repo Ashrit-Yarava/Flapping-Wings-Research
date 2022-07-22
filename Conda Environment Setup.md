@@ -105,12 +105,11 @@
 1. The NVIDIA CUDA toolkit can be installed from the terminal via:
 
    ```
-   sudo apt update
-   sudo apt install nvidia-cuda-toolkit
+   
    ```
-
+   
    If a password prompt is requested, enter the password for the Linux account.
-
+   
 2. Ensure that the CUDA toolkit is installed by running:
 
    ```
