@@ -93,14 +93,9 @@
 
 > JAX relies on the CUDA toolkit as well as the CuDNN library. The CUDA toolkit is used for interacting with the NVIDIA GPUs while the CuDNN library is used for compiling functions with XLA to be capable of running on the GPU.
 
-1. The NVIDIA CUDA toolkit can be installed from the terminal via:
+1. Install the NVIDIA toolkit from the NVIDIA cuda toolkit link listed below. Follow the instructions for the WSL-UBUNTU option.
 
-   ```
-   sudo apt update
-   sudo apt install nvidia-cuda-toolkit
-   ```
-
-   If a password prompt is requested, enter the password for the Linux account.
+   1. Note that it is required to install the Game Ready Nvidia Driver on the windows operating system as well. This allows for communication between the GPU and the linux subsystem.
 
 2. Ensure that the CUDA toolkit is installed by running:
 
@@ -185,7 +180,7 @@
 
 2. Navigate to the extensions tab and search for `Python`. Install the first extension listed and open the `igVortex/Python` folder through VS Code by selecting `File` and `Open...`
 
-3. Open the `igVortex.py` file. This will indicate to VS Code that this is a Python project.![Screen Shot 2022-06-16 at 11.13.39 AM](Images/Screen Shot 2022-06-16 at 11.13.39 AM.png)
+3. Open the `igVortex.py` file. This will indicate to VS Code that this is a Python project.
 
 4. Click on the numbers below and select the conda `wings` environment.
 
