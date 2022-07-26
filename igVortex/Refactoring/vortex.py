@@ -80,8 +80,6 @@ HDOT = np.zeros((nstep))
 
 MVN = matrix_coef(xv, yv, xc, yc, dfc, m)
 
-print(MVN)
-
 if g.vfplot == 1:
     if camber == 0.0:
         ZETA = c_mesh(c_, d_)
@@ -113,6 +111,17 @@ logging.info(f" Start Of Time Marching ")
 logging.info(f"========================")
 
 
-for istep in range(1, nstep + 1):
+for istep in range(1, 3):
     t = (istep - 1) * dt
     alp, l, h, dalp, dl, dh = air_foil_m(t, e, beta, gMax, p, rtOff, U, V)
+    LDOT[istep - 1] = dl
+    HDOT[istep - 1] = dh
+
+    NC, ZV, ZC, ZVt, ZCt, ZWt = wing_global(istep, t, a,
+                                            alp, l, h,
+                                            xv, yv, xc, yc,
+                                            dfc, ZW, U, V)
+
+    VN = air_foil_v(ZC, ZCt, NC, t, dl, dh, dalp)
+
+    VNW, eps = velocity_w2(m, ZC, NC, ZF, GAMAw, iGAMAw, eps)
