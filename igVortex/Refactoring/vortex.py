@@ -110,8 +110,8 @@ logging.info(f"========================")
 logging.info(f" Start Of Time Marching ")
 logging.info(f"========================")
 
-
-for istep in range(1, 3):
+ip = None
+for istep in range(1, nstep + 1):
     t = (istep - 1) * dt
     alp, l, h, dalp, dl, dh = air_foil_m(t, e, beta, gMax, p, rtOff, U, V)
     LDOT[istep - 1] = dl
@@ -125,3 +125,37 @@ for istep in range(1, 3):
     VN = air_foil_v(ZC, ZCt, NC, t, dl, dh, dalp)
 
     VNW, eps = velocity_w2(m, ZC, NC, ZF, GAMAw, iGAMAw, eps)
+
+    GAMA, MVN, ip = solution(m, VN, VNW, istep, sGAMAw, MVN, ip)
+
+    Lb, Ab, Lw, Aw = impulses(istep,
+                              ZVt, ZWt,
+                              a, GAMA,
+                              m, GAMAw,
+                              iGAMAw)
+
+    impulseLb[istep - 1] = Lb
+    impulseAb[istep - 1] = Ab
+    impulseLw[istep - 1] = Lw
+    impulseAw[istep - 1] = Aw
+
+    iGAMAf = 2 * istep
+
+    if istep == 1:
+        ZF[2 * istep - 2] = ZV[0]
+        ZF[2 * istep - 1] = ZV[m - 1]
+    else:
+        ZF = np.concatenate((ZF, np.array([ZV[0]])))
+        ZF = np.concatenate((ZF, np.array([ZV[m - 1]])))
+
+    VELF, eps = velocity(ZF, iGAMAf, GAMA, m, ZV, GAMAw, iGAMAw, eps)
+
+    ZW = ZF[0:iGAMAf] + VELF * dt
+
+    iGAMAw = iGAMAw + 2
+    GAMAw[2 * istep - 2] = GAMA[0]
+    GAMAw[2 * istep - 1] = GAMA[m - 1]
+
+    sGAMAw = sGAMAw + GAMA[0] + GAMA[m - 1]
+
+    ZF = ZW
