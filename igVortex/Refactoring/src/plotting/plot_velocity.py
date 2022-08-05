@@ -47,22 +47,22 @@ def igVELOCITYF(Z, ZV, ZW, a, GAMA, m, GAMAw, iGAMAw, U, V, alp, dalp, dl, dh):
 
 def plot_velocity(istep, ZV, ZW, a, GAMA, m,
                   GAMAw, iGAMAw, U, V, alp, l, h, dalp,
-                  dl, dh):
+                  dl, dh, ZETA, vpFreq, zavoid, ivCont):
     # Airfoil 9/10/2018
     XPLTF = np.real(ZV)
     YPLTF = np.imag(ZV)
 
     # Plot the velocity field, every vpFreq seps.
-    if istep % g.vpFreq == 0:
+    if istep % vpFreq == 0:
         # Calculate the velocity field.
         ROT = np.exp(-1j * alp)
-        RZETA = (g.ZETA + a) * ROT
+        RZETA = (ZETA + a) * ROT
 
         X = np.real(RZETA) + l
         Y = np.imag(RZETA) + h
         Z = X + 1j * Y
 
-        if g.zavoid == 1:
+        if zavoid == 1:
             # Skip source points that coincides with the obseration points.
             # (slower)
 
@@ -81,11 +81,11 @@ def plot_velocity(istep, ZV, ZW, a, GAMA, m,
             S, (int(math.sqrt(S.shape[0])), int(math.sqrt(S.shape[0]))))
 
         plt.quiver(X, Y, U, V)
-        plt.plot(XPLTF, YPLTF, '-b')
+        # plt.plot(XPLTF, YPLTF, '-b')
         plt.savefig(f"{g.folder}velocity/spaceVelocity_{istep}.png")
         plt.clf()
 
-        if g.ivCont == 1:
+        if ivCont == 1:
             plt.contour(X, Y, S, g.svCont)
             plt.contourf(X, Y, S, g.svCont)
         else:

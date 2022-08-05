@@ -11,5 +11,5 @@ def wing_global_plot(ZC, NC, t):
     xtip = xaif + sf * np.real(NC)
     ytip = yaif + sf * np.imag(NC)
     plt.plot([xaif, xtip], [yaif, ytip])
-    plt.savefig(f"{g.folder}w2g_{t}.tif")
+    plt.savefig(f"{g.folder}w2g_{np.round(t, 4)}.tif")
     plt.clf()

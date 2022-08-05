@@ -34,3 +34,4 @@ ivCont = 0
 vpFreq = 1
 
 delta = 0
+iterations = None

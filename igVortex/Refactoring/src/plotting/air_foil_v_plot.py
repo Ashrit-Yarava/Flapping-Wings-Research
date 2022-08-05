@@ -16,5 +16,5 @@ def air_foil_v_plot(ZC, NC, VN, t):
     plt.plot([xaif, xtip], [yaif, ytip])
     plt.axis('equal')
     plt.plot(xc, yc, 'o')
-    plt.savefig(f"{g.folder}AirfoilVg_{t}.tif")
+    plt.savefig(f"{g.folder}AirfoilVg_{np.round(t, 4)}.tif")
     plt.clf()

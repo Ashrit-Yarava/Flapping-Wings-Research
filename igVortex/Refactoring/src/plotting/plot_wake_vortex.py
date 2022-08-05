@@ -8,7 +8,7 @@ def plot_wake_vortex(iGAMAw, ZV, ZW, istep):
     xpltf = np.real(ZV)
     ypltf = np.imag(ZV)
 
-    if istep == 1:
+    if istep == 0:
         plt.plot(xpltf, ypltf, '-k')
         plt.savefig(f"{g.folder}wake/wake_{istep}.tif")
     else:
@@ -23,6 +23,6 @@ def plot_wake_vortex(iGAMAw, ZV, ZW, istep):
         plt.plot(xpltf, ypltf, '-k',
                  xpltwo, ypltwo, 'ok',
                  xpltwe, ypltwe, 'or')
-        plt.savefig(f"{g.folder}wake/wake_{istep - 1}.tif")
-        
+        plt.savefig(f"{g.folder}wake/wake_{istep}.tif")
+    plt.clf()
         
