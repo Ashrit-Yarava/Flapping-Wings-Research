@@ -16,6 +16,7 @@ def wing_global(istep, t, a, alp, l, h, xv, yv, xc, yc, dfc, ZW, U, V):
     ZCt = (a + zc) * expmia
     ZV = ZVt + zt
     ZC = ZCt + zt
+
     inorm = 1
 
     if inorm == 0:

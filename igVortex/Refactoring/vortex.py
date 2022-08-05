@@ -1,10 +1,13 @@
-import numpy as np
-import logging
-import matplotlib.pyplot as plt
-
-from src import *
-
+import asyncio
 import src.globals as g
+from src import *
+from scipy.linalg import lu_factor, lu_solve
+import matplotlib.pyplot as plt
+import logging
+import numpy as np
+from multiprocessing import Pool
+from timeit import default_timer
+starting_time = default_timer()
 
 np.set_printoptions(precision=4)
 
@@ -40,6 +43,7 @@ wvMax = 7.0
 wvCont = np.arange(0.0, svMax + 1e-10, wvInc)
 ivCont = 0
 vpFreq = 1
+g.nplot = None
 
 v_, t_, d_, e, c, x, y, a, beta, gMax, U, V = in_data(
     l_, phiT_, phiB_, c_, x_, y_, a_, beta_, f_, gMax_, U_, V_)
@@ -79,12 +83,13 @@ LDOT = np.zeros((nstep))
 HDOT = np.zeros((nstep))
 
 MVN = matrix_coef(xv, yv, xc, yc, dfc, m)
+MVN_lu = lu_factor(MVN)
 
 if g.vfplot == 1:
     if camber == 0.0:
-        ZETA = c_mesh(c_, d_)
+        g.ZETA = c_mesh(c_, d_)
     else:
-        ZETA = camber_mesh(c_, d_, camber)
+        g.ZETA = camber_mesh(c_, d_, camber)
 
 impulseLb = np.zeros((nstep)) + 1j * np.zeros((nstep))
 impulseAb = np.zeros((nstep))
@@ -110,7 +115,26 @@ logging.info(f"========================")
 logging.info(f" Start Of Time Marching ")
 logging.info(f"========================")
 
-ip = None
+iterations = {
+    'ZC': [],
+    'NC': [],
+    't': [],
+    'VN': [],
+    'iGAMAw': [],
+    'ZV': [],
+    'ZW': [],
+    'GAMA': [],
+    'GAMAw': [],
+    'U': [],
+    'V': [],
+    'alp': [],
+    'l': [],
+    'h': [],
+    'dalp': [],
+    'dl': [],
+    'dh': []
+}
+
 for istep in range(1, nstep + 1):
     t = (istep - 1) * dt
     alp, l, h, dalp, dl, dh = air_foil_m(t, e, beta, gMax, p, rtOff, U, V)
@@ -122,11 +146,23 @@ for istep in range(1, nstep + 1):
                                             xv, yv, xc, yc,
                                             dfc, ZW, U, V)
 
+    iterations['ZC'].append(np.copy(ZC))
+    iterations['NC'].append(np.copy(NC))
+    iterations['t'].append(np.copy(t))
+
     VN = air_foil_v(ZC, ZCt, NC, t, dl, dh, dalp)
+
+    iterations['VN'].append(np.copy(VN))
 
     VNW, eps = velocity_w2(m, ZC, NC, ZF, GAMAw, iGAMAw, eps)
 
-    GAMA, MVN, ip = solution(m, VN, VNW, istep, sGAMAw, MVN, ip)
+    GAMA = VN - VNW
+    GAMA = np.append(GAMA, -sGAMAw)
+    GAMA = lu_solve(MVN_lu, GAMA)
+
+    iterations['iGAMAw'].append(np.copy(iGAMAw))
+    iterations['ZV'].append(np.copy(ZV))
+    iterations['ZW'].append(np.copy(ZW))
 
     Lb, Ab, Lw, Aw = impulses(istep,
                               ZVt, ZWt,
@@ -138,6 +174,17 @@ for istep in range(1, nstep + 1):
     impulseAb[istep - 1] = Ab
     impulseLw[istep - 1] = Lw
     impulseAw[istep - 1] = Aw
+
+    iterations['GAMA'].append(np.copy(GAMA))
+    iterations['GAMAw'].append(np.copy(GAMAw))
+    iterations['U'].append(np.copy(U))
+    iterations['V'].append(np.copy(V))
+    iterations['alp'].append(np.copy(alp))
+    iterations['l'].append(np.copy(l))
+    iterations['h'].append(np.copy(h))
+    iterations['dalp'].append(np.copy(dalp))
+    iterations['dl'].append(np.copy(dl))
+    iterations['dh'].append(np.copy(dh))
 
     iGAMAf = 2 * istep
 
@@ -159,3 +206,46 @@ for istep in range(1, nstep + 1):
     sGAMAw = sGAMAw + GAMA[0] + GAMA[m - 1]
 
     ZF = ZW
+
+    logging.info(f"--- istep = {istep} ---")
+    logging.info(f"VN = {VN}\nVNW = {VNW}\nGAMA = {GAMA}\nVELF = {VELF}")
+
+logging.info(f"========================")
+logging.info(f"  End Of Time Marching  ")
+logging.info(f"========================")
+
+ending_time = default_timer()
+print(f"Time Elapsed (Computations): {ending_time - starting_time}")
+
+starting_time_plots = default_timer()
+
+
+def plot_plots(istep):
+    wing_global_plot(iterations['ZC'][istep],
+                     iterations['NC'][istep], iterations['t'][istep])
+    air_foil_v_plot(iterations['ZC'][istep], iterations['NC']
+                    [istep], iterations['VN'][istep], iterations['t'][istep])
+    plot_wake_vortex(iterations['iGAMAw'][istep],
+                     iterations['ZV'][istep], iterations['ZW'][istep], istep)
+    plot_velocity(istep + 1, iterations['ZV'][istep], iterations['ZW'][istep], a, iterations['GAMA'][istep], m, iterations['GAMAw'][istep], iterations['iGAMAw'][istep], iterations['U'][istep],
+                  iterations['V'][istep], iterations['alp'][istep], iterations['l'][istep], iterations['h'][istep], iterations['dalp'][istep], iterations['dl'][istep], iterations['dh'][istep])
+
+
+if __name__ == "__main__":
+    with Pool(5) as pool:
+        pool.map(plot_plots, range(0, nstep))
+
+g.impulseAb = impulseAb
+g.impulseLb = impulseLb
+g.impulseAw = impulseAw
+g.impulseLw = impulseLw
+
+g.LDOT = LDOT
+g.HDOT = HDOT
+
+force_moment(rho_, v_, d_, nstep, dt, U, V)
+plot_m_vortex(v_, d_, GAMAw, nstep)
+
+ending_time = default_timer()
+print(f"Time Elapsed (Plotting): {ending_time - starting_time_plots}")
+print(f"Time Elapsed: {ending_time - starting_time}")
