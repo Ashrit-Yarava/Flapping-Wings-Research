@@ -1,13 +1,12 @@
-**/.DS_Store
+# VS Code files
+.vscode/
 
-# Image files.
-**/*.tif
-**/*.png
-**/*.bmp
-
-**/__pycache__/
+# System Files
+.DS_Store
 
 
-# Log Files
+# Project Specific Files
+fig/
+__pycache__/
+.ipynb_checkpoints/
 output.txt
-pyrightconfig.json
