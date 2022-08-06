@@ -5,8 +5,9 @@
 **/*.png
 **/*.bmp
 
+# Python Cache
 **/__pycache__/
-
+env/
 
 # Log Files
 output.txt
