@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+          "type": "python",
+          "name": "Run Vortex Simulation",
+          "arguments": ["vortex.py"],
+        },
+
+    ]
+}
