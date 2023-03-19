@@ -4,7 +4,6 @@ import src.globals as g
 
 # --------------------
 # From bottom up
-
 def cos_up_tail_b(t):
     # Basic cos function (0 <= t <= 4) with a tail (4 <= t <= 8)
     if t <= 4.0:
