@@ -1,0 +1,140 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 13.2' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      4639,        132]
+NotebookOptionsPosition[      3759,        109]
+NotebookOutlinePosition[      4156,        125]
+CellTagsIndexPosition[      4113,        122]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.893807498087573*^9, 3.893807529798712*^9}, {
+   3.893807597938501*^9, 3.893807605822751*^9}, {3.89380765270606*^9, 
+   3.893807701046629*^9}, {3.8938078748222723`*^9, 3.893807889481409*^9}, {
+   3.893808021102408*^9, 3.893808038748352*^9}, 
+   3.893808452188324*^9},ExpressionUUID->"41cfc274-5e5c-445a-9f32-\
+01161a25f7a7"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.893808040784647*^9, 
+  3.893808076403788*^9}},ExpressionUUID->"67ab95dc-c756-42e0-a756-\
+226619576330"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "Plot", "argr", 
+   "\"\\!\\(\\*RowBox[{\\\"Plot\\\"}]\\) called with 1 argument; \
+\\!\\(\\*RowBox[{\\\"2\\\"}]\\) arguments are expected.\"", 2, 17, 6, 
+   28950038788855690064, "Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{3.893808074724518*^9},
+ CellLabel->
+  "During evaluation of \
+In[17]:=",ExpressionUUID->"a77eb0d2-7c57-4897-8bf2-74f117266477"]
+}, Open  ]],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.893808189263377*^9, 3.8938082024982023`*^9}, {
+   3.893808250663919*^9, 3.893808371114614*^9}, 
+   3.893808525208234*^9},ExpressionUUID->"5c101b4c-cd52-4865-b365-\
+9412ecfc4482"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Timing", "[", 
+  RowBox[{"Block", "[", 
+   RowBox[{
+    RowBox[{"{", "}"}], ",", 
+    RowBox[{"(", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"x", " ", "=", " ", 
+       RowBox[{"Range", "[", 
+        RowBox[{
+         RowBox[{"-", "1"}], ",", "1", ",", " ", "0.02"}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"coeffs", " ", "=", " ", 
+       RowBox[{"RandomReal", "[", 
+        RowBox[{"1", ",", " ", "10"}], "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"polyval", "[", 
+        RowBox[{"q_", ",", "x_"}], "]"}], ":=", 
+       RowBox[{
+        RowBox[{"Total", "[", 
+         RowBox[{
+          RowBox[{"Reverse", "[", "q", "]"}], " ", 
+          RowBox[{"z", "^", 
+           RowBox[{"Range", "[", 
+            RowBox[{"0", ",", 
+             RowBox[{
+              RowBox[{"Length", "[", "q", "]"}], "-", "1"}]}], "]"}]}]}], 
+         "]"}], "/.", " ", 
+        RowBox[{"z", "->", "x"}]}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"y", " ", "=", 
+       RowBox[{"polyval", "[", 
+        RowBox[{"coeffs", ",", " ", "x"}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"plot", "=", 
+       RowBox[{"ListPlot", "[", "y", "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"Export", "[", 
+       RowBox[{
+       "\"\<~/Desktop/Flapping \
+Wings/workspace/plotting_profiling/plot.png\>\"", ",", " ", "plot"}], "]"}], 
+      ";"}], "\[IndentingNewLine]", ")"}]}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.893808385433497*^9, 3.8938084543744698`*^9}, {
+  3.8938085138178473`*^9, 3.8938086097514067`*^9}},
+ CellLabel->"In[44]:=",ExpressionUUID->"3fc91cc8-ab3c-4a62-acdd-dba1b51dda03"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"0.03332`", ",", "Null"}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.893808532920209*^9, 3.893808577554021*^9, {3.893808610527794*^9, 
+   3.893808620001584*^9}},
+ CellLabel->"Out[44]=",ExpressionUUID->"607d16d0-4683-4b03-b84f-565e33b53d5c"]
+}, Open  ]]
+},
+WindowSize->{1240, 842},
+WindowMargins->{{15, Automatic}, {Automatic, 15}},
+FrontEndVersion->"13.2 for Mac OS X ARM (64-bit) (January 30, 2023)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"bd78708d-bff5-42d1-8d77-8f3f215ef690"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 372, 6, 30, "Input",ExpressionUUID->"41cfc274-5e5c-445a-9f32-01161a25f7a7"],
+Cell[CellGroupData[{
+Cell[955, 30, 152, 3, 30, "Input",ExpressionUUID->"67ab95dc-c756-42e0-a756-226619576330"],
+Cell[1110, 35, 408, 10, 28, "Message",ExpressionUUID->"a77eb0d2-7c57-4897-8bf2-74f117266477"]
+}, Open  ]],
+Cell[1533, 48, 227, 4, 30, "Input",ExpressionUUID->"5c101b4c-cd52-4865-b365-9412ecfc4482"],
+Cell[CellGroupData[{
+Cell[1785, 56, 1676, 42, 178, "Input",ExpressionUUID->"3fc91cc8-ab3c-4a62-acdd-dba1b51dda03"],
+Cell[3464, 100, 279, 6, 57, "Output",ExpressionUUID->"607d16d0-4683-4b03-b84f-565e33b53d5c"]
+}, Open  ]]
+}
+]
+*)
+
