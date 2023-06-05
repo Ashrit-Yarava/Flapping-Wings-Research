@@ -1,4 +1,4 @@
-# 2D Flapping Wings Simulation Notebook Overview
+# 2D Flapping Wings Simulation Overview
 
 *The following notebooks are the Python conversion of Prof. Denda's MATLAB code for his Flapping Wings Research*
 
